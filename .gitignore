@@ -1,0 +1,9 @@
+# Handoff Docs
+Handoff_MDs/
+
+# ENV
+.env 
+test-harness/.env
+
+# Node
+test-harness/node_modules
