@@ -1,0 +1,12 @@
+export const config = {
+  server: {
+    port: 3001
+  },
+  model: {
+    name: 'gemini-3.1-flash-lite'
+  },
+  session: {
+    maxMessages: 20,
+    truncationLimit: 120
+  }
+};
