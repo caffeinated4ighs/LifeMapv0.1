@@ -1,18 +1,17 @@
 import 'dotenv/config';
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { loadConfig, buildSystemPrompt } from './configLoader.js';
-import { FAKE_STATE } from './fakeState.js';
+import { loadConfig, buildSystemPrompt, getRuntime } from './configLoader.js';
 import { createConversation, insertMessage, assembleContext } from './sessionManager.js';
-import { config } from './config.js';
+import { initGoogleClient, sendChat } from './googleClient.js'
+import { buildStateString } from './dbAgent.js';
 
 loadConfig();
+initGoogleClient();
 
 const app = express();
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const PORT = process.env.PORT || config.server.port;
+const PORT = process.env.PORT || getRuntime().server.port;
 
 app.post('/chat', async (req, res) => {
   try {
@@ -22,23 +21,16 @@ app.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'Missing session_id or message' });
     }
 
-    createConversation(session_id);
-    insertMessage(session_id, 'user', message);
+    await createConversation(session_id);
+    await insertMessage(session_id, 'user', message);
 
-    const history = assembleContext(session_id);
+    const history = await assembleContext(session_id);
 
-    const model = genAI.getGenerativeModel({
-      model: config.model.name, // Used config
-      systemInstruction: buildSystemPrompt(),
-    });
+    const stateString = await buildStateString()
+    const messageWithState = `[CURRENT STATE]\n${stateString}\n[/CURRENT STATE]\n\nUser: ${message}`
+    const replyText = await sendChat(history, buildSystemPrompt(), messageWithState)
 
-    const messageWithState = `[CURRENT STATE]\n${FAKE_STATE}\n[/CURRENT STATE]\n\nUser: ${message}`;
-
-    const chat = model.startChat({ history });
-    const result = await chat.sendMessage(messageWithState);
-    const replyText = result.response.text();
-
-    insertMessage(session_id, 'model', replyText);
+    await insertMessage(session_id, 'model', replyText);
 
     return res.json({ reply: replyText });
 

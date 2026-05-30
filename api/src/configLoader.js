@@ -16,7 +16,8 @@ export function loadConfig() {
     persona: 'persona.json',
     vocabulary: 'vocabulary.json',
     mechanics: 'mechanics.json',
-    theme: 'theme.json'
+    theme: 'theme.json',
+    runtime: 'runtime.json'
   };
 
   _config = {};
@@ -84,4 +85,10 @@ export function getRank(level) {
   if (eligibleRanks.length === 0) return ranks[0].title;
 
   return eligibleRanks[eligibleRanks.length - 1].title;
+}
+
+export function getRuntime() {
+  const config = getConfig();
+  
+  return config.runtime;
 }

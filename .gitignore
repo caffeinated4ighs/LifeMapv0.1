@@ -5,6 +5,8 @@ Handoff_MDs/
 .env 
 test-harness/.env
 api/src/.env
+api/.env
+config/.env
 
 # Node
 test-harness/node_modules
