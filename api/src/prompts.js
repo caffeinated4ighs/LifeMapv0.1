@@ -30,9 +30,3 @@ Tone: cold, direct, to the point and concise. 2/10 for chitchat
 
 `.trim();
 }
-
-// [TESTING ONLY — remove before production]
-// - Reply in plain text. No markdown, bold, headers, or formatting unless listing tasks.
-// - No [SYSTEM ALERT] headers. No roleplay flourishes.
-// - No XP calculations or stat updates in replies.
-// [/TESTING ONLY]

@@ -1,0 +1,67 @@
+{
+  "xp_base": {
+    "mandatory": 10,
+    "habit": 12,
+    "project": 15,
+    "bonus": 6,
+    "anchor": 15
+  },
+  "gold_base": { "P0": 15, "P1": 10, "P2": 6, "P3": 3 },
+  "gold_difficulty_offset": { "low": -2, "medium": 0, "high": 5 },
+  "gold_floor": 1,
+  "skill_xp_formula": "100 * (current_level + 1)",
+  "skill_projection_tiers": [
+    { "min": 0.30, "max": 0.39, "multiplier": 0.1 },
+    { "min": 0.40, "max": 0.49, "multiplier": 0.2 },
+    { "min": 0.50, "max": 0.59, "multiplier": 0.3 },
+    { "min": 0.60, "max": 0.69, "multiplier": 0.4 },
+    { "min": 0.70, "max": 0.79, "multiplier": 0.5 },
+    { "min": 0.80, "max": 0.89, "multiplier": 0.6 },
+    { "min": 0.90, "max": 0.99, "multiplier": 0.7 },
+    { "min": 1.00, "max": 1.00, "multiplier": 0.8 }
+  ],
+  "skill_xp_crossover_label": {
+    "indirect": { "min": 0.30, "max": 0.59 },
+    "partial":   { "min": 0.60, "max": 0.89 },
+    "direct":    { "min": 0.90, "max": 1.00 }
+  },
+  "skill_candidate_threshold": 3,
+  "skill_candidate_max_distance": 0.4,
+  "decay_trigger_threshold": -7,
+  "streak_formula": {
+    "type": "power",
+    "coefficient": 0.019959,
+    "exponent": 0.593015,
+    "anchors": "day 30 = +15%, day 1000 = +120%"
+  },
+  "ranks": [
+    { "level": 1,   "title": "Hatchling" },
+    { "level": 5,   "title": "Early Bird" },
+    { "level": 10,  "title": "Getting a Hang of It" },
+    { "level": 15,  "title": "Tutorial Complete" },
+    { "level": 20,  "title": "Showing Up" },
+    { "level": 25,  "title": "No Longer an Excuse" },
+    { "level": 30,  "title": "Half a Year In" },
+    { "level": 35,  "title": "Putting in Work" },
+    { "level": 40,  "title": "Built Different" },
+    { "level": 45,  "title": "Certified Grinder" },
+    { "level": 50,  "title": "Godlike" },
+    { "level": 60,  "title": "Legendary" },
+    { "level": 70,  "title": "Woah You Still Here??" },
+    { "level": 80,  "title": "Get a Life" },
+    { "level": 90, "title": "Go Touch Grass" },
+    { "level": 100, "title": "Young you is Proud!" }
+  ],
+  "gold_ledger_rules": {
+    "credit": "update total_gold AND available_gold",
+    "debit": "update available_gold ONLY"
+  },
+  "xp_level_formula": {
+    "base_multiplier": 1.060,
+    "decay_rate": 0.0075,
+    "decay_offset": 55,
+    "level_0_xp": 50,
+    "level_1_xp": 100,
+    "base_xp": 100
+ }
+}

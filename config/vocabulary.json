@@ -1,0 +1,15 @@
+{
+  "task": "task",
+  "tasks": "tasks",
+  "complete": "complete",
+  "completed": "completed",
+  "cancelled": "cancelled",
+  "arc": "arc",
+  "quest": "quest",
+  "level": "level",
+  "rank": "rank",
+  "gold": "gold",
+  "xp": "XP",
+  "streak": "streak",
+  "energy": "energy"
+}

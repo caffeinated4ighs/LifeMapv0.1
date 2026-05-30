@@ -1,0 +1,31 @@
+{
+  "colors": {
+    "background": "#0a0a0a",
+    "surface": "#111111",
+    "border": "#1f1f1f",
+    "accent": "#4f8ef7",
+    "text_primary": "#e8e8e8",
+    "text_secondary": "#888888",
+    "gold": "#c9a84c",
+    "xp": "#4f8ef7",
+    "danger": "#e05555",
+    "success": "#4caf7d"
+  },
+  "fonts": {
+    "primary": "Inter, system-ui, sans-serif",
+    "mono": "JetBrains Mono, monospace"
+  },
+  "task_type_icons": {
+    "mandatory": "⚔",
+    "habit": "🔄",
+    "project": "📋",
+    "bonus": "⭐",
+    "anchor": "⚓"
+  },
+  "priority_labels": {
+    "P0": "CRITICAL",
+    "P1": "HIGH",
+    "P2": "NORMAL",
+    "P3": "LOW"
+  }
+}

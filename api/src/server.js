@@ -1,10 +1,12 @@
 import 'dotenv/config';
 import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { buildSystemPrompt } from './prompts.js';
+import { loadConfig, buildSystemPrompt } from './configLoader.js';
 import { FAKE_STATE } from './fakeState.js';
 import { createConversation, insertMessage, assembleContext } from './sessionManager.js';
 import { config } from './config.js';
+
+loadConfig();
 
 const app = express();
 app.use(express.json());
@@ -27,11 +29,13 @@ app.post('/chat', async (req, res) => {
 
     const model = genAI.getGenerativeModel({
       model: config.model.name, // Used config
-      systemInstruction: buildSystemPrompt(FAKE_STATE),
+      systemInstruction: buildSystemPrompt(),
     });
 
+    const messageWithState = `[CURRENT STATE]\n${FAKE_STATE}\n[/CURRENT STATE]\n\nUser: ${message}`;
+
     const chat = model.startChat({ history });
-    const result = await chat.sendMessage(message);
+    const result = await chat.sendMessage(messageWithState);
     const replyText = result.response.text();
 
     insertMessage(session_id, 'model', replyText);
