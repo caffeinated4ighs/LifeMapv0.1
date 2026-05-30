@@ -2,6 +2,7 @@
 -- Run after 02_core_gameplay.sql
 -- Creates: arc, task
 -- Depends on: nothing upstream except extensions (vector type)
+-- v2: embedding_vector updated to vector(3072) — gemini-embedding-001 output dim
 
 CREATE TABLE IF NOT EXISTS arc (
     id               serial  PRIMARY KEY,
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS task (
     scheduled_at        timestamp,
     time_block          text
                                     CHECK (time_block IN ('morning','noon','evening','night','midnight')),
-    embedding_vector    vector(768),
+    embedding_vector    vector(3072),
     projection_status   text        NOT NULL    DEFAULT 'pending'
                                     CHECK (projection_status IN ('pending','done','failed')),
     created_at          timestamp   NOT NULL    DEFAULT now(),

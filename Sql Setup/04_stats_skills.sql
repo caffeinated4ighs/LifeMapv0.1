@@ -2,6 +2,7 @@
 -- Run after 03_tasks_arcs.sql
 -- Creates: stat, skill, skill_candidate
 -- Depends on: task (for skill.origin_task_id and skill_candidate.task_id FKs)
+-- v2: all vector columns updated to vector(3072) — gemini-embedding-001 output dim
 
 CREATE TABLE IF NOT EXISTS stat (
     id               serial      PRIMARY KEY,
@@ -10,7 +11,7 @@ CREATE TABLE IF NOT EXISTS stat (
     current_value    float       NOT NULL    DEFAULT 0,
     current_streak   int         NOT NULL    DEFAULT 0,
     icon             text,
-    embedding_vector vector(768)
+    embedding_vector vector(3072)
 );
 
 CREATE TABLE IF NOT EXISTS skill (
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS skill (
     current_level    int         NOT NULL    DEFAULT 0,
     xp_to_next       int         NOT NULL    DEFAULT 100,
     current_streak   int         NOT NULL    DEFAULT 0,
-    centroid_vector  vector(768),
+    centroid_vector  vector(3072),
     created_at       timestamp   NOT NULL    DEFAULT now()
 );
 
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS skill_candidate (
     task_id                 int         NOT NULL    REFERENCES task(id) ON DELETE CASCADE,
     cluster_id              uuid        NOT NULL    DEFAULT gen_random_uuid(),
     distance_to_centroid    float       NOT NULL,
-    cluster_centroid        vector(768),
+    cluster_centroid        vector(3072),
     status                  text        NOT NULL    DEFAULT 'pending'
                                         CHECK (status IN ('pending','graduated','dismissed')),
     graduated_to_skill_id   int         REFERENCES skill(id) ON DELETE SET NULL,

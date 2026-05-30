@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS llm_context_chunk (
     session_id   int         NOT NULL    REFERENCES llm_session(id) ON DELETE CASCADE,
     order_index  int         NOT NULL,
     content      text        NOT NULL,
-    token_count  int         NOT NULL
+    token_count  int         NOT NULL,
+    role         text        NOT NULL    DEFAULT 'user'
 );
