@@ -11,3 +11,4 @@ config/.env
 # Node
 test-harness/node_modules
 api/src/node_modules
+api/node_modules
