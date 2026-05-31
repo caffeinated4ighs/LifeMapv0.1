@@ -143,7 +143,6 @@ export async function assembleContext(sessionId) {
     return [];
   }
 
-  // Step 3: Map through renderSummaryAsText and format for Google SDK
   return chunks.map(chunk => ({
     role: chunk.role,
     parts: [{ text: chunk.content }]
