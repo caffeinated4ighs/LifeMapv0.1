@@ -1,6 +1,8 @@
-import { getRank } from './configLoader.js';
+import { getRank, loadConfig } from './configLoader.js';
 import { supabase } from './supabaseClient.js';
- 
+import * as logicAgent from './logicAgent.js';
+
+loadConfig()
 
 export async function getTasksToday() {
   const today = new Date().toISOString().split('T')[0]
@@ -120,3 +122,177 @@ PLAYER STATE:
 - Mandatory met: ${streak.mandatory_met}
 `.trim()
 }
+
+export async function addTask(taskData) {
+  const { data, error } = await supabase
+    .from('task')
+    .insert(taskData)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function removeTask(taskId) {
+  const { data: task, error: fetchError } = await supabase
+    .from('task')
+    .select('id, status')
+    .eq('id', taskId)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error(`Error fetching task ${taskId}:`, fetchError);
+    throw fetchError;
+  }
+  if (!task) {
+    throw new Error(`Task Removal Failed: Task with ID ${taskId} does not exist.`);
+  }
+  if (task.status === 'cancelled') {
+    throw new Error(`Task Removal Failed: Task with ID ${taskId} is already cancelled.`);
+  }
+  const { error: updateError } = await supabase
+    .from('task')
+    .update({ status: 'cancelled' })
+    .eq('id', taskId);
+
+  if (updateError) {
+    console.error(`Error updating status for task ${taskId}:`, updateError);
+    throw updateError;
+  }
+  return { id: taskId, cancelled: true };
+}
+
+
+export async function rescheduleTask(taskId, updates) {
+  const { data: task, error: fetchError } = await supabase
+    .from('task')
+    .select('*')
+    .eq('id', taskId)
+    .single();
+
+  if (fetchError) {
+    throw new Error('Task not found');
+  }
+  if (!task) {
+    throw new Error(`Task Removal Failed: Task with ID ${taskId} does not exist.`);
+  }
+  if (task.status === 'completed' || task.status === 'cancelled') {
+    throw new Error('Cannot reschedule a completed or cancelled task');
+  }
+  const fields = {};
+  if (updates.scheduled_at) {
+    fields.scheduled_at = updates.scheduled_at;
+  }
+  if (updates.time_block) {
+    fields.time_block = updates.time_block;
+  }
+  if (Object.keys(fields).length === 0) {
+    throw new Error(
+      'Must provide scheduled_at and/or time_block to reschedule'
+    );
+  }
+  const { data, error } = await supabase
+    .from('task')
+    .update(fields)
+    .eq('id', taskId)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export async function addArc(arcData) {
+  const { data, error } = await supabase
+    .from('arc')
+    .insert({
+      ...arcData,
+      status: 'active'
+    })
+    .select()
+    .single();
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export async function getArcs() {
+  const { data, error } = await supabase
+    .from('arc')
+    .select('*')
+    .eq('status', 'active');
+  if (error) {
+    throw error;
+  }
+  return data || [];
+}
+
+export async function completeTask(taskId) {
+  const { data: task, error: taskError } = await supabase
+    .from('task')
+    .select('*')
+    .eq('id', taskId)
+    .single();
+
+  if (taskError) {
+    throw taskError;
+  }
+
+  const player = await getPlayerState();
+  const { xp, gold } = logicAgent.computeTaskRewards(task);
+  
+  const streakMult = logicAgent.computeStreakMultiplier(
+    player.streak.day_streak
+  );
+  const xpWithStreak = xp * (1 + streakMult);
+
+  const leveledUp = logicAgent.detectLevelUp(
+    player.current_xp,
+    player.xp_to_next,
+    xpWithStreak
+  );
+
+  const {
+    newLevel,
+    newXp,
+    newXpToNext
+  } = logicAgent.computeNewLevel(
+    player.level,
+    player.current_xp,
+    xpWithStreak
+  );
+
+  const { data, error } = await supabase.rpc('complete_task', {
+    p_task_id: taskId,
+    p_xp_gained: xpWithStreak,
+    p_gold_gained: gold,
+    p_streak_mult: 1 + streakMult,
+    p_arc_mult: 1.0,
+    p_new_level: newLevel,
+    p_new_xp: newXp,
+    p_new_xp_to_next: newXpToNext,
+    p_leveled_up: leveledUp
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+const task = await addTask({
+  title: 'Complete task test',
+  task_type: 'project',
+  priority: 'P1',
+  difficulty: 'high'
+})
+
+console.log('created task id:', task.id)
+
+const result = await completeTask(task.id)
+console.log(result)
