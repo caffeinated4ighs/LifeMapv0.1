@@ -1,8 +1,6 @@
-import { getRank, loadConfig } from './configLoader.js';
+import { getRank } from './configLoader.js';
 import { supabase } from './supabaseClient.js';
 import * as logicAgent from './logicAgent.js';
-
-loadConfig()
 
 export async function getTasksToday() {
   const today = new Date().toISOString().split('T')[0]
@@ -313,7 +311,7 @@ export async function getShopItems() {
 }
 
 export async function addShopItem(itemData) {
-  const validTypes = ['leisure', 'activity', 'day_off']
+  const validTypes = ['leisure', 'day_off']
   if (!validTypes.includes(itemData.type)) {
     throw new Error(`Invalid item type: ${itemData.type}`)
   }

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS economy_item (
     name         text    NOT NULL,
     description  text    NOT NULL,
     cost_gold    int     NOT NULL,
-    type         text    NOT NULL    CHECK (type IN ('leisure','activity','day_off')),
+    type         text    NOT NULL    CHECK (type IN ('leisure','day_off')),
     active       bool    NOT NULL    DEFAULT true
 );
 

@@ -6,8 +6,7 @@
 CREATE TABLE IF NOT EXISTS task_skill (
     task_id             int     NOT NULL    REFERENCES task(id) ON DELETE CASCADE,
     skill_id            int     NOT NULL    REFERENCES skill(id) ON DELETE CASCADE,
-    similarity_score    float   NOT NULL
-                                CHECK (xp_crossover_type IN ('direct','partial','indirect')),
+    similarity_score    float   NOT NULL,
 
     PRIMARY KEY (task_id, skill_id)
 );

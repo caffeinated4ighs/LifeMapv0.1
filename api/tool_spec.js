@@ -110,7 +110,7 @@ export const toolSpecMap = {
         name:        { type: 'string', description: 'Item name' },
         description: { type: 'string', description: 'What the item is or grants' },
         cost_gold:   { type: 'number', description: 'Gold cost' },
-        type:        { type: 'string', enum: ['leisure', 'activity', 'day_off'] }
+        type:        { type: 'string', enum: ['leisure', 'day_off'] }
       },
       required: ['name', 'description', 'cost_gold', 'type']
     }
