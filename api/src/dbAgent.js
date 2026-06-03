@@ -10,7 +10,8 @@ export async function getTasksToday() {
   const { data, error } = await supabase
     .from('active_tasks')
     .select('*')
-    .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
+    // .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
+    .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null,and(scheduled_at.is.null,time_block.is.null)`)
     .order('scheduled_at', { ascending: true, nullsFirst: false });
 
   if (error) {
@@ -29,7 +30,8 @@ export async function getNextTask() {
     .from('active_tasks')
     .select('*')
     .eq('status', 'pending')
-    .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
+    // .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
+    .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null,and(scheduled_at.is.null,time_block.is.null)`)
     .order('scheduled_at', { ascending: true, nullsFirst: false })
     .limit(1)
     .single();
@@ -267,32 +269,151 @@ export async function completeTask(taskId) {
   );
 
   const { data, error } = await supabase.rpc('complete_task', {
-    p_task_id: taskId,
-    p_xp_gained: xpWithStreak,
-    p_gold_gained: gold,
-    p_streak_mult: 1 + streakMult,
-    p_arc_mult: 1.0,
-    p_new_level: newLevel,
-    p_new_xp: newXp,
+    p_task_id:        taskId,
+    p_xp_gained:      xpWithStreak,
+    p_gold_gained:    gold,
+    p_streak_mult:    1 + streakMult,
+    p_arc_mult:       1.0,
+    p_new_level:      newLevel,
+    p_new_xp:         newXp,
     p_new_xp_to_next: newXpToNext,
-    p_leveled_up: leveledUp
-  });
+    p_leveled_up:     leveledUp
+  })
 
   if (error) {
-    throw error;
+    console.error('complete_task RPC failed:', {
+      taskId,
+      error: JSON.stringify(error),
+      args: { p_task_id: taskId, p_xp_gained: xpWithStreak, p_gold_gained: gold }
+    })
+    throw error
+  }
+
+  if (!data) {
+    console.error('complete_task RPC returned no data for taskId:', taskId)
+    throw new Error(`complete_task returned null for task ${taskId}`)
   }
 
   return data;
 }
 
-const task = await addTask({
-  title: 'Complete task test',
-  task_type: 'project',
-  priority: 'P1',
-  difficulty: 'high'
-})
+// ----------------------------------------------------------------------------
+// SHOP
+// ----------------------------------------------------------------------------
 
-console.log('created task id:', task.id)
+export async function getShopItems() {
+  const { data, error } = await supabase
+    .from('economy_item')
+    .select('id, name, description, cost_gold, type')
+    .eq('active', true)
+    .order('cost_gold', { ascending: true })
 
-const result = await completeTask(task.id)
-console.log(result)
+  if (error) throw error
+  return data || []
+}
+
+export async function addShopItem(itemData) {
+  const validTypes = ['leisure', 'activity', 'day_off']
+  if (!validTypes.includes(itemData.type)) {
+    throw new Error(`Invalid item type: ${itemData.type}`)
+  }
+
+  const { data, error } = await supabase
+    .from('economy_item')
+    .insert({
+      name:        itemData.name,
+      description: itemData.description,
+      cost_gold:   itemData.cost_gold,
+      type:        itemData.type
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function buyItem(itemId) {
+  const { data: item, error: itemError } = await supabase
+    .from('economy_item')
+    .select('id, name, cost_gold, active')
+    .eq('id', itemId)
+    .single()
+
+  if (itemError || !item) throw new Error(`Item not found: ${itemId}`)
+  if (!item.active) throw new Error(`Item not available: ${item.name}`)
+
+  const { data, error } = await supabase.rpc('buy_item', {
+    p_item_id:   itemId,
+    p_gold_cost: item.cost_gold
+  })
+
+  if (error) {
+    console.error('buy_item RPC failed:', {
+      itemId,
+      error: JSON.stringify(error)
+    })
+    throw error
+  }
+
+  if (!data) {
+    console.error('buy_item RPC returned no data for itemId:', itemId)
+    throw new Error(`buy_item returned null for item ${itemId}`)
+  }
+
+  return data
+}
+
+export async function getSkills() {
+  const { data, error } = await supabase
+    .from('skill')
+    .select('id, name, description, category, is_dynamic, current_level, current_xp, xp_to_next, current_streak')
+    .order('current_level', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function renameSkill({
+  skill_id,
+  new_name,
+  new_description
+}) {
+  console.log('renameSkill called:', { skill_id, new_name, new_description })
+  // Build update payload — only include description if provided
+  const updates = {
+    name: new_name
+  };
+
+  if (
+    new_description !== undefined &&
+    new_description !== null
+  ) {
+    updates.description = new_description;
+  }
+
+  const { data, error } = await supabase
+    .from('skill')
+    .update(updates)
+    .eq('id', skill_id)
+    .select(
+      'id, name, description, current_level, current_xp'
+    )
+    .single();
+
+  if (error) {
+    console.error('renameSkill error:', error);
+    throw new Error(
+      `Failed to rename skill: ${error.message}`
+    );
+  }
+
+  // The DB webhook fires on this UPDATE and triggers
+  // on-skill-rename edge function which re-embeds
+  // the skill asynchronously.
+
+  return {
+    success: true,
+    skill: data,
+    message: `Skill renamed to "${new_name}". Re-embedding in progress — future task completions will match against the new name.`
+  };
+}

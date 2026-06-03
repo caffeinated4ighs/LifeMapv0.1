@@ -1,17 +1,4 @@
-// One-liners for Pass 1 — no parameters, minimal tokens
-export const toolSummaries = [
-  { name: 'get_tasks',        description: "Get today's tasks." },
-  { name: 'get_next_task',    description: 'Get the single next pending task.' },
-  { name: 'get_player_state', description: 'Get level, XP, gold, energy, streak.' },
-  { name: 'add_task',        description: 'Add a new task for today or a future date.' },
-  { name: 'remove_task',     description: 'Cancel a task by ID.' },
-  { name: 'reschedule_task', description: 'Change when a task is scheduled.' },
-  { name: 'complete_task',   description: 'Mark a task as done and award XP and gold.' },
-  { name: 'add_arc',         description: 'Create a new long-term goal arc.' },
-  { name: 'get_arcs',        description: 'List all active arcs.' },
-]
-
-// Full specs for Pass 2 — fetched by tool name after Pass 1 identifies intent
+// Full specs — all tools passed to Pass 1
 export const toolSpecMap = {
   get_tasks: {
     name: 'get_tasks',
@@ -30,7 +17,7 @@ export const toolSpecMap = {
   },
   add_task: {
     name: 'add_task',
-    description: 'Add a new task. Requires title and task_type. Priority and difficulty default to P2 and medium.',
+    description: 'Add a new task. Requires title and task_type. Priority and difficulty default to P2 and medium. If no scheduled_at or time_block is provided, the task will appear in the daily list without a specific time slot', 
     parameters: {
       type: 'object',
       properties: {
@@ -106,5 +93,72 @@ export const toolSpecMap = {
     name: 'get_arcs',
     description: 'List all active arcs.',
     parameters: { type: 'object', properties: {}, required: [] }
-  }
+  },
+
+  get_shop_items: {
+    name: 'get_shop_items',
+    description: 'Returns all active shop items ordered by cost ascending. Shows id, name, description, gold cost, and type.',
+    parameters: { type: 'object', properties: {}, required: [] }
+  },
+
+  add_shop_item: {
+    name: 'add_shop_item',
+    description: 'Add a new item to the shop catalogue. LLM-writable. Type must be leisure, activity, or day_off.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name:        { type: 'string', description: 'Item name' },
+        description: { type: 'string', description: 'What the item is or grants' },
+        cost_gold:   { type: 'number', description: 'Gold cost' },
+        type:        { type: 'string', enum: ['leisure', 'activity', 'day_off'] }
+      },
+      required: ['name', 'description', 'cost_gold', 'type']
+    }
+  },
+
+  buy_item: {
+    name: 'buy_item',
+    description: 'Purchase an item from the shop. Deducts gold from available_gold only. total_gold is never decremented. Fails if insufficient gold or item inactive.',
+    parameters: {
+      type: 'object',
+      properties: {
+        item_id: { type: 'number', description: 'ID of the item to purchase' }
+      },
+      required: ['item_id']
+    }
+  },
+  get_skills: {
+    name: 'get_skills',
+    description: 'List all skills with their numeric ids, names, levels, XP, and streaks. Call this before rename_skill to get the skill_id.',
+    parameters: { type: 'object', properties: {}, required: [] }
+  },  
+  rename_skill: {
+    name: 'rename_skill',
+    description:
+      'Rename a dynamic skill. You MUST call get_skills first to get the numeric skill_id — ' +
+      'never guess or infer the id from the skill name. ' +
+      'Use when the user wants to give a skill a better name or broader scope. ' +
+      'The system will automatically re-embed the skill under the new name. ' +
+      'Always confirm the new name with the user before calling this tool.',
+    parameters: {
+      type: 'object',
+      properties: {
+        skill_id: {
+          type: 'number',
+          description:
+            'The id of the skill to rename. Get this from get_player_state or by asking the user which skill they mean.'
+        },
+        new_name: {
+          type: 'string',
+          description: 'The new name for the skill. One to four words.'
+        },
+        new_description: {
+          type: 'string',
+          description:
+            'Optional updated description. If omitted, the existing description is kept.'
+        }
+      },
+      required: ['skill_id', 'new_name']
+    }
+  } 
 }

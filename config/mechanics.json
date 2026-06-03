@@ -48,6 +48,11 @@
   "skill_candidate_threshold": 3,
   "skill_candidate_max_distance": 0.4,
   "decay_trigger_threshold": -7,
+  "late_penalty": {
+    "formula": "0.9 ^ days_delayed",
+    "base": 0.9,
+    "description": "Compounding 10% penalty per day delayed on both XP and gold. No floor."
+  },
   "streak_formula": {
     "type": "power",
     "coefficient": 0.019959,

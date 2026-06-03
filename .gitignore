@@ -12,3 +12,9 @@ config/.env
 test-harness/node_modules
 api/src/node_modules
 api/node_modules
+node_modules
+
+# supabase
+.supabase/ 
+supabase/.temp
+
