@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: lifemap-api
+    runtime: node
+    repo: https://github.com/caffeinated4ighs/LifeMapv0.1
+    branch: main
+    rootDir: api
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: DISCORD_WEBHOOK_URL
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true

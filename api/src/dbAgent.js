@@ -8,7 +8,6 @@ export async function getTasksToday() {
   const { data, error } = await supabase
     .from('active_tasks')
     .select('*')
-    // .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
     .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null,and(scheduled_at.is.null,time_block.is.null)`)
     .order('scheduled_at', { ascending: true, nullsFirst: false });
 
@@ -16,7 +15,19 @@ export async function getTasksToday() {
     console.error('Error fetching today\'s tasks:', error);
     throw error;
   }
-  return data || [];
+
+  const currentHour = new Date().getUTCHours()
+  const passedBlocks = []
+  if (currentHour >= 12) passedBlocks.push('morning')
+  if (currentHour >= 14) passedBlocks.push('noon')
+  if (currentHour >= 19) passedBlocks.push('evening')
+  if (currentHour >= 22) passedBlocks.push('night')
+
+  return (data || []).filter(task => {
+    if (task.task_type !== 'routine') return true
+    if (!task.time_block) return true
+    return !passedBlocks.includes(task.time_block)
+  })
 }
 
 

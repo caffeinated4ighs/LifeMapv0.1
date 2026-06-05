@@ -22,7 +22,7 @@ export const toolSpecMap = {
       type: 'object',
       properties: {
         title:              { type: 'string', description: 'Task title' },
-        task_type:          { type: 'string', enum: ['mandatory','habit','project','bonus','anchor'] },
+        task_type: { type: 'string', enum: ['mandatory','habit','project','bonus','anchor','routine'] },
         priority:           { type: 'string', enum: ['P0','P1','P2','P3'] },
         difficulty:         { type: 'string', enum: ['low','medium','high'] },
         description:        { type: 'string' },
