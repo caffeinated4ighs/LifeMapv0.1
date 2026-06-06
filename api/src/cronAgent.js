@@ -204,7 +204,6 @@ export async function runEod() {
     .from('task')
     .update({ status: 'pending' })
     .eq('task_type', 'routine')
-    .not('recurrence_pattern', 'is', null)
     .eq('status', 'completed')
 
   // 6. Decrement skill/stat streaks for non-hits today

@@ -172,18 +172,42 @@ app.get('/tasks', async (req, res) => {
 
     // Historical date — tasks scheduled or completed on that date.
     const { supabase } = await import('./supabaseClient.js')
-    const { data, error } = await supabase
-      .from('task')
-      .select('*')
-      .neq('status', 'cancelled')
-      .or(
-        `scheduled_at.gte.${date}T00:00:00,scheduled_at.lte.${date}T23:59:59,` +
-        `completed_at.gte.${date}T00:00:00,completed_at.lte.${date}T23:59:59`
-      )
-      .order('scheduled_at', { ascending: true, nullsFirst: false })
 
-    if (error) throw error
-    return res.json(data || [])
+    const [scheduledRes, completedRes] = await Promise.all([
+      supabase
+        .from('task')
+        .select('*')
+        .neq('status', 'cancelled')
+        .gte('scheduled_at', `${date}T00:00:00`)
+        .lte('scheduled_at', `${date}T23:59:59`),
+
+      supabase
+        .from('task')
+        .select('*')
+        .neq('status', 'cancelled')
+        .gte('completed_at', `${date}T00:00:00`)
+        .lte('completed_at', `${date}T23:59:59`)
+    ])
+
+    if (scheduledRes.error) throw scheduledRes.error
+    if (completedRes.error) throw completedRes.error
+
+    // Deduplicate by task id, prefer scheduled result as source of truth
+    const seen = new Set()
+    const merged = []
+    for (const task of [...(scheduledRes.data || []), ...(completedRes.data || [])]) {
+      if (!seen.has(task.id)) {
+        seen.add(task.id)
+        merged.push(task)
+      }
+    }
+    merged.sort((a, b) => {
+      if (!a.scheduled_at) return 1
+      if (!b.scheduled_at) return -1
+      return a.scheduled_at.localeCompare(b.scheduled_at)
+    })
+
+    return res.json(merged)
   } catch (error) {
     console.error('GET /tasks error:', error.message)
     return res.status(500).json({ error: error.message })
@@ -266,5 +290,9 @@ app.post('/buy/:itemId', async (req, res) => {
 // Health
 // ---------------------------------------------------------------------------
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
+
+if (process.env.NODE_ENV !== 'production') {
+  console.log('SYSTEM PROMPT LENGTH:', buildSystemPrompt().length)
+}
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

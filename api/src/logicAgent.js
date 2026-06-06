@@ -5,10 +5,10 @@ export function computeTaskRewards(task) {
   const mechanics = config.mechanics;
 
   if (task.task_type === 'routine') {
-    return { xp: mechanics.xp_base.routine, gold: mechanics.gold_base_routine };
+    return { xp: 4, gold: 2 }
   }
 
-  const effectiveType = task.task_type === 'anchor' ? 'project' : task.task_type
+  const effectiveType = task.task_type
   const xp = mechanics.xp_base[effectiveType]
 
   let gold = mechanics.gold_base[task.priority];

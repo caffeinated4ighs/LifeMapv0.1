@@ -5,15 +5,40 @@ import * as logicAgent from './logicAgent.js';
 export async function getTasksToday() {
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
-  const { data, error } = await supabase
+
+  // Query 1: tasks scheduled specifically for today
+  const { data: scheduledData, error: scheduledError } = await supabase
     .from('active_tasks')
     .select('*')
-    .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null,and(scheduled_at.is.null,time_block.is.null)`)
-    .order('scheduled_at', { ascending: true, nullsFirst: false });
+    .gte('scheduled_at', today)
+    .lt('scheduled_at', tomorrow)
+    .order('scheduled_at', { ascending: true, nullsFirst: false })
 
-  if (error) {
-    console.error('Error fetching today\'s tasks:', error);
-    throw error;
+  if (scheduledError) {
+    console.error('Error fetching scheduled tasks:', scheduledError)
+    throw scheduledError
+  }
+
+  // Query 2: unscheduled tasks (no scheduled_at, no time_block) — always visible
+  const { data: unscheduledData, error: unscheduledError } = await supabase
+    .from('active_tasks')
+    .select('*')
+    .is('scheduled_at', null)
+    .is('time_block', null)
+
+  if (unscheduledError) {
+    console.error('Error fetching unscheduled tasks:', unscheduledError)
+    throw unscheduledError
+  }
+
+  // Merge and deduplicate by id
+  const seen = new Set()
+  const merged = []
+  for (const task of [...(scheduledData || []), ...(unscheduledData || [])]) {
+    if (!seen.has(task.id)) {
+      seen.add(task.id)
+      merged.push(task)
+    }
   }
 
   const currentHour = new Date().getUTCHours()
@@ -23,7 +48,7 @@ export async function getTasksToday() {
   if (currentHour >= 19) passedBlocks.push('evening')
   if (currentHour >= 22) passedBlocks.push('night')
 
-  return (data || []).filter(task => {
+  return merged.filter(task => {
     if (task.task_type !== 'routine') return true
     if (!task.time_block) return true
     return !passedBlocks.includes(task.time_block)
@@ -122,19 +147,13 @@ export async function buildStateString() {
   const { level, current_xp, xp_to_next, available_gold, energy, streak } = playerState
   const rank = getRank(level)
 
-  return `
-PLAYER STATE:
-- Level: ${level}
-- Rank: ${rank}
-- XP: ${current_xp} / ${xp_to_next}
-- Gold: ${available_gold}g
-- Streak: ${streak.day_streak} days
-- Energy: ${energy.current} / ${energy.max} (${energy.threshold_label})
-- Mandatory met: ${streak.mandatory_met}
-`.trim()
+  return `Lv${level} ${rank} | XP ${current_xp}/${xp_to_next} | Gold ${available_gold}g | Streak +${streak.day_streak} | Energy ${energy.current}/${energy.max} (${energy.threshold_label}) | Mandatory: ${streak.mandatory_met}`
 }
 
 export async function addTask(taskData) {
+  if (taskData.task_type === 'routine' && !taskData.recurrence_pattern) {
+    taskData.recurrence_pattern = 'daily'
+  }
   const { data, error } = await supabase
     .from('task')
     .insert(taskData)

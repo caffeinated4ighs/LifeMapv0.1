@@ -10,7 +10,7 @@
 // Environment variables (set in Supabase Edge Function secrets):
 //   GOOGLE_API_KEY        — Google AI Studio key
 //   SUPABASE_URL          — project URL  (auto-injected by Supabase)
-//   SUPABASE_SERVICE_KEY  — service role key (set manually in secrets)
+//   SB_SERVICE_KEY        — service role key
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -34,7 +34,7 @@ const XP_BASE: Record<string, number> = {
   habit:     12,
   project:   15,
   bonus:     6,
-  anchor:    10, // anchor uses its underlying type; fallback to mandatory base
+  anchor:    15, // anchor uses its underlying type; fallback to mandatory base
 };
 
 // Skill XP formula constants (skill_xp_formula in mechanics.json)

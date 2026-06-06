@@ -33,6 +33,10 @@ export async function sendChat(history, systemPrompt, message) {
 
   const chat1 = pass1Model.startChat({ history })
   const result1 = await sendWithRetry(chat1, message)
+  if (process.env.NODE_ENV !== 'production') {
+    const usage = result1.response.usageMetadata
+    console.log(`[tokens] pass1 input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+  }
   const candidate1 = result1.response.candidates[0]
   const part1 = candidate1.content.parts[0]
 
@@ -61,6 +65,10 @@ export async function sendChat(history, systemPrompt, message) {
     chat2,
     `Tool result for ${toolName}:\n${JSON.stringify(toolResult, null, 2)}\n\nNarrate this to the user in your persona.`
   )
+  if (process.env.NODE_ENV !== 'production') {
+    const usage = result2.response.usageMetadata
+    console.log(`[tokens] pass2 input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+  }
 
   return result2.response.text()
 }
