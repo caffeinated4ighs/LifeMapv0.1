@@ -10,6 +10,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: TZ
+        value: America/New_York
       - key: GOOGLE_API_KEY
         sync: false
       - key: SUPABASE_URL

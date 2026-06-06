@@ -83,5 +83,20 @@
   "gold_ledger_rules": {
     "credit": "update total_gold AND available_gold",
     "debit": "update available_gold ONLY"
+  },
+  "energy_drain_base": {
+    "mandatory": 8,
+    "habit":     6,
+    "project":   10,
+    "bonus":     3,
+    "anchor":    10,
+    "routine":   2
+  },
+  "energy_drain_difficulty_offset": { "low": -2, "medium": 0, "high": 4 },
+  "energy_drain_floor": 1,
+  "energy_recovery": {
+    "per_recovery_task": 15,
+    "passive_morning_regen": 5,
+    "arc_regen_multiplier_default": 1.0
   }
 }
