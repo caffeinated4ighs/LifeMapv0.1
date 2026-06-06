@@ -71,9 +71,10 @@ app.post('/chat', async (req, res) => {
     }
 
     await createConversation(session_id);
-    await insertMessage(session_id, 'user', message);
 
     const history = await assembleContext(session_id);
+
+    await insertMessage(session_id, 'user', message);
 
     const stateString = await buildStateString()
     const messageWithState = `[CURRENT STATE]\n${stateString}\n[/CURRENT STATE]\n\nUser: ${message}`

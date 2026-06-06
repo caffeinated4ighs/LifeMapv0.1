@@ -61,11 +61,12 @@ function todayStr() {
 // Priority base gold: P0=15, P1=10, P2=6, P3=3
 // Difficulty offset:  low=-2, medium=0, high=+5 | Floor: 1g
 // XP base: mandatory=10, habit=12, project=15, bonus=6, anchor=15, routine=4
-const XP_BASE = { mandatory: 10, habit: 12, project: 15, bonus: 6, anchor: 15, routine: 4 }
+const XP_BASE = { mandatory: 10, habit: 12, project: 15, bonus: 6, anchor: 10, routine: 4 }
 const GOLD_BASE = { P0: 15, P1: 10, P2: 6, P3: 3 }
 const DIFF_OFFSET = { low: -2, medium: 0, high: 5 }
 
 function computeDisplayRewards(task) {
+  if (task.task_type === 'routine') return { xp: 4, gold: 2 }
   const xp = XP_BASE[task.task_type] ?? 0
   const gold = Math.max(1, (GOLD_BASE[task.priority] ?? 3) + (DIFF_OFFSET[task.difficulty] ?? 0))
   return { xp, gold }

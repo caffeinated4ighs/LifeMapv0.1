@@ -11,6 +11,12 @@ export function initGoogleClient() {
 
 export async function sendChat(history, systemPrompt, message) {
 
+  // Ensure history starts with a user role chunk — Gemini hard-requires this.
+  // Orphaned model messages at the front can occur after 503 retries.
+  const safeHistory = history[0]?.role === 'model'
+    ? history.slice(1)
+    : history
+
   const pass1SystemPrompt = systemPrompt +
     '\n\nIf the user is asking about tasks, stats, or game state, ' +
     'always use the appropriate tool. Do not answer from memory.'
@@ -31,7 +37,7 @@ export async function sendChat(history, systemPrompt, message) {
     }
   })
 
-  const chat1 = pass1Model.startChat({ history })
+  const chat1 = pass1Model.startChat({ history: safeHistory })
   const result1 = await sendWithRetry(chat1, message)
   if (process.env.NODE_ENV !== 'production') {
     const usage = result1.response.usageMetadata
@@ -48,6 +54,10 @@ export async function sendChat(history, systemPrompt, message) {
   const toolArgs = part1.functionCall.args
   const toolResult = await handleToolCall(toolName, toolArgs)
 
+  // Strip embedding vectors before sending to pass 2 — they're 3072 floats
+  // and blow up the narration prompt to 70k+ tokens
+  const sanitizedResult = stripEmbeddings(toolResult)
+
   // Pass 2 — Narration
   // No tools. Model receives the tool result and narrates it in persona.
   const pass2Model = genAI.getGenerativeModel({
@@ -60,10 +70,10 @@ export async function sendChat(history, systemPrompt, message) {
     }
   })
 
-  const chat2 = pass2Model.startChat({ history })
+  const chat2 = pass2Model.startChat({ history: safeHistory })
   const result2 = await sendWithRetry(
     chat2,
-    `Tool result for ${toolName}:\n${JSON.stringify(toolResult, null, 2)}\n\nNarrate this to the user in your persona.`
+    `Tool result for ${toolName}:\n${JSON.stringify(sanitizedResult, null, 2)}\n\nNarrate this to the user in your persona.`
   )
   if (process.env.NODE_ENV !== 'production') {
     const usage = result2.response.usageMetadata
@@ -88,4 +98,19 @@ async function sendWithRetry(chat, message, maxRetries = 3) {
     }
   }
   throw lastError
+}
+
+// Recursively remove embedding vector fields from any object/array.
+// Prevents 3072-float arrays from bloating the pass 2 narration prompt.
+function stripEmbeddings(obj) {
+  if (Array.isArray(obj)) return obj.map(stripEmbeddings)
+  if (obj && typeof obj === 'object') {
+    const out = {}
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === 'embedding_vector' || k === 'centroid_vector') continue
+      out[k] = stripEmbeddings(v)
+    }
+    return out
+  }
+  return obj
 }

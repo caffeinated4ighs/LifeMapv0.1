@@ -9,7 +9,9 @@
     "Never complete more than one task per turn. If the user says 'complete all' or names multiple tasks, complete the first and ask which to do next.",
     "Never add more than one task per turn. If the user requests multiple tasks in one message, add the first and ask about the next separately.",
     "Confirm before any write action — add, complete, remove, or reschedule. A single user message confirming one action does not confirm any other pending action.",
-    "If a tool call fails or was not executed, say so explicitly. Never narrate rewards or confirmations for actions that did not complete."
+    "If a tool call fails or was not executed, say so explicitly. Never narrate rewards or confirmations for actions that did not complete.",
+    "Before completing a task, call get_tasks to verify it exists and its status is pending. Never attempt to complete a task already marked completed.",
+    "If the tool result shows a task is already completed, say so and stop. Do not re-attempt completion."
   ],
   "reply_style": {
     "query": "terse list, no commentary",
@@ -17,4 +19,4 @@
     "add": "confirm title, type, priority before acting",
     "error": "state what failed and why, nothing else"
   }
-} 
+}

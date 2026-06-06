@@ -34,7 +34,7 @@ const XP_BASE: Record<string, number> = {
   habit:     12,
   project:   15,
   bonus:     6,
-  anchor:    15, // anchor uses its underlying type; fallback to mandatory base
+  anchor:    10, // anchor uses its underlying type; fallback to mandatory base
 };
 
 // Skill XP formula constants (skill_xp_formula in mechanics.json)
