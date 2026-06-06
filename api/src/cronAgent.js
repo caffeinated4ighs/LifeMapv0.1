@@ -58,7 +58,7 @@ export async function runMorning() {
       1,
       Math.floor((Date.now() - originalScheduledAt.getTime()) / 86400000)
     )
-    const mechanics = getConfig().mechanics
+
     const lateMultiplier = Math.pow(mechanics.late_penalty.base, daysDelayed)
 
     // Cancel original
@@ -113,7 +113,6 @@ export async function runMorning() {
     .eq('id', 1)
 
   // Passive energy regen
-  const mechanics = getConfig().mechanics
   const regen = mechanics.energy_recovery.passive_morning_regen
 
   // Get active arc multiplier (default 1.0 if none)
@@ -203,7 +202,7 @@ export async function runEod() {
   if (state.eod_cron_ran)      return { skipped: true, reason: 'already_ran' }
 
   const today = new Date().toISOString().split('T')[0]
-  const mechanics = getConfig().mechanics
+
 
   // 2. mandatory_met already set by complete_task SQL function — read from state
   const mandatoryMet = state.mandatory_met
@@ -282,7 +281,7 @@ export async function runEod() {
     .gte('completed_at', today)
 
   // Recovery task energy restoration
-  const mechanics = getConfig().mechanics
+
 
   const { data: recoveryTasks } = await supabase
     .from('task')
