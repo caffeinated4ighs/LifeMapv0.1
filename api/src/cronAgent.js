@@ -112,7 +112,6 @@ export async function runMorning() {
     .eq('id', 1)
 
   // Passive energy regen
-  const mechanics = getConfig().mechanics
   const regen = mechanics.energy_recovery.passive_morning_regen
 
   // Get active arc multiplier (default 1.0 if none)
