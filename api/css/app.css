@@ -1448,3 +1448,166 @@ textarea {
     max-height: calc(100dvh - 40px);
   }
 }
+
+/* ── Task Drawer ────────────────────────────────────────────────────── */
+#task-panel {
+  position: relative;
+}
+
+.task-drawer {
+  position: absolute;
+  top: 0; right: 0;
+  width: 300px;
+  height: 100%;
+  background: var(--color-surface, #111);
+  border-left: 1px solid var(--color-border, #1f1f1f);
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.task-drawer[hidden] { display: none; }
+
+.drawer-inner {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.drawer-close {
+  position: absolute;
+  top: 0.75rem; right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #888);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.4rem;
+  line-height: 1;
+}
+.drawer-close:hover { color: var(--color-text-primary, #e8e8e8); }
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-top: 1.25rem;
+}
+
+.drawer-type-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+.drawer-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #e8e8e8);
+  line-height: 1.3;
+}
+
+.drawer-type-label {
+  font-size: 0.6rem;
+  color: var(--color-text-secondary, #888);
+  letter-spacing: 0.08em;
+  margin-top: 0.15rem;
+}
+
+.drawer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.recovery-tag {
+  background: rgba(72,187,120,0.15);
+  color: #48bb78;
+  border-color: rgba(72,187,120,0.3);
+}
+
+.late-tag {
+  background: rgba(229,85,85,0.15);
+  color: #e05555;
+  border-color: rgba(229,85,85,0.3);
+}
+
+.drawer-description {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary, #888);
+  line-height: 1.5;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #1f1f1f);
+  min-height: 2.5rem;
+}
+
+.drawer-rewards {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.energy-cost {
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #48bb78;
+}
+
+.drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.drawer-complete-btn {
+  width: 100%;
+  padding: 0.65rem;
+  background: var(--color-accent, #4f8ef7);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.drawer-complete-btn:hover:not(:disabled) { opacity: 0.85; }
+.drawer-complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.drawer-cancel-link {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #888);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.2rem;
+  text-decoration: underline;
+}
+.drawer-cancel-link:hover { color: #e05555; }
+
+.drawer-completed-label {
+  text-align: center;
+  color: #48bb78;
+  font-size: 0.78rem;
+  padding: 0.4rem;
+}
+
+/* ── Day-off Badge ──────────────────────────────────────────────────── */
+.day-off-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 4px;
+  color: #c9a84c;
+  font-size: 0.58rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}

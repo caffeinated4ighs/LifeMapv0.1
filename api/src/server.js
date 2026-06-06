@@ -14,9 +14,11 @@ import {
   getSnapshots,
   getCalendar,
   getSkills,
-  buyItem
+  buyItem,
+  completeTask,
+  removeTask
 } from './dbAgent.js';
-import { runMorning, runEod, runCleanup } from './cronAgent.js';
+import { runMorning, runEod, runCleanup, runRemind } from './cronAgent.js';
 import { postToDiscord, initDiscordBot } from './discordBot.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -132,6 +134,16 @@ app.post('/cron/cleanup', requireCronSecret, async (req, res) => {
     return res.json({ status: 'ok', ...result })
   } catch (error) {
     console.error('Cleanup cron error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/cron/remind', requireCronSecret, async (req, res) => {
+  try {
+    const result = await runRemind()
+    return res.json({ status: 'ok', ...result })
+  } catch (error) {
+    console.error('Remind cron error:', error.message)
     return res.status(500).json({ error: error.message })
   }
 })
@@ -284,6 +296,32 @@ app.post('/buy/:itemId', async (req, res) => {
     return res.json(result)
   } catch (error) {
     console.error('POST /buy error:', error.message)
+    return res.status(400).json({ error: error.message })
+  }
+})
+
+// Direct task completion — bypasses LLM for UI button.
+app.post('/complete/:taskId', async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.taskId, 10)
+    if (isNaN(taskId)) return res.status(400).json({ error: 'Invalid task ID' })
+    const result = await completeTask(taskId)
+    return res.json(result)
+  } catch (error) {
+    console.error('POST /complete error:', error.message)
+    return res.status(400).json({ error: error.message })
+  }
+})
+
+// Direct task cancellation — bypasses LLM for UI button.
+app.post('/cancel/:taskId', async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.taskId, 10)
+    if (isNaN(taskId)) return res.status(400).json({ error: 'Invalid task ID' })
+    const result = await removeTask(taskId)
+    return res.json(result)
+  } catch (error) {
+    console.error('POST /cancel error:', error.message)
     return res.status(400).json({ error: error.message })
   }
 })

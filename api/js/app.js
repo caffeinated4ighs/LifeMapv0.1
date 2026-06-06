@@ -69,6 +69,10 @@ function hydrateNavbar(state) {
 
   // Gold
   setText('gold-value', formatGold(available_gold))
+
+  if (typeof updateDayOffBadge === 'function') {
+    updateDayOffBadge(state.day_off_granted ?? false)
+  }
 }
 
 // ── Refresh navbar (called after any state-mutating action) ──────────────────

@@ -15,9 +15,41 @@ import {
   getSkills
 } from './dbAgent.js'
 
+async function generateTaskDescription(task) {
+  const { GoogleGenerativeAI } = await import('@google/generative-ai')
+  const { getRuntime } = await import('./configLoader.js')
+  const { supabase } = await import('./supabaseClient.js')
+
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+  const model = genAI.getGenerativeModel({
+    model: getRuntime().model.name,
+    generationConfig: { temperature: 0.7, maxOutputTokens: 60 }
+  })
+
+  const prompt = `Task: "${task.title}"
+Type: ${task.task_type}, Priority: ${task.priority}, Difficulty: ${task.difficulty}
+Write one sentence (max 15 words) describing what completing this task involves. Be specific. No filler.`
+
+  const result = await model.generateContent(prompt)
+  const description = result.response.text().trim()
+
+  await supabase
+    .from('task')
+    .update({ description })
+    .eq('id', task.id)
+}
+
 export async function handleToolCall(toolName, args) {
   switch (toolName) {
-    case 'add_task':          return await addTask(args)
+    case 'add_task': {
+      const newTask = await addTask(args)
+      if (!args.description) {
+        generateTaskDescription(newTask).catch(err =>
+          console.error('description gen failed:', err)
+        )
+      }
+      return newTask
+    }
     case 'remove_task':       return await removeTask(args.task_id)
     case 'reschedule_task':   return await rescheduleTask(args.task_id, {
       scheduled_at: args.scheduled_at,

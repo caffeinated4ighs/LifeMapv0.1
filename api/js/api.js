@@ -57,3 +57,11 @@ async function apiPostChat(message, sessionId = 'web') {
 async function apiBuyItem(itemId) {
   return apiFetch(`/buy/${itemId}`, { method: 'POST' })
 }
+
+async function apiCompleteTask(taskId) {
+  return apiFetch(`/complete/${taskId}`, { method: 'POST' })
+}
+
+async function apiCancelTask(taskId) {
+  return apiFetch(`/cancel/${taskId}`, { method: 'POST' })
+}

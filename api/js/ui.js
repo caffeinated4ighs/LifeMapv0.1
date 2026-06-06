@@ -72,6 +72,16 @@ function computeDisplayRewards(task) {
   return { xp, gold }
 }
 
+const ENERGY_DRAIN_BASE = { mandatory: 8, habit: 6, project: 10, bonus: 3, anchor: 10, routine: 2 }
+const ENERGY_DRAIN_DIFF = { low: -2, medium: 0, high: 4 }
+
+function computeDisplayEnergyCost(task) {
+  if (task.task_type === 'routine') return 1
+  const base   = ENERGY_DRAIN_BASE[task.task_type] ?? 5
+  const offset = ENERGY_DRAIN_DIFF[task.difficulty] ?? 0
+  return Math.max(1, base + offset)
+}
+
 // ── Streak class helper ──────────────────────────────────────────────────────
 function streakClass(n) {
   if (n == null || n === 0) return 'zero'
@@ -96,7 +106,7 @@ function energyClass(threshold_label) {
 // the energy display. Safe to call on every state refresh.
 function updateDayOffBadge(dayOffGranted) {
   const BADGE_ID = 'day-off-badge'
-  const energyEl = document.querySelector('.navbar-energy, #navbar-energy, [data-energy]')
+  const energyEl = document.getElementById('nav-energy')
   if (!energyEl) return
 
   let badge = document.getElementById(BADGE_ID)

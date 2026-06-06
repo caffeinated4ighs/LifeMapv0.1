@@ -5,6 +5,7 @@
 
 import { supabase } from './supabaseClient.js'
 import { getConfig } from './configLoader.js'
+import { postToDiscord } from './discordBot.js'
 
 // ---------------------------------------------------------------------------
 // runMorning
@@ -356,6 +357,54 @@ export async function runEod() {
     recovery_tasks_completed: recoveryCount,
     energy_restored: recoveryCount * mechanics.energy_recovery.per_recovery_task
   }
+}
+
+// ---------------------------------------------------------------------------
+// runRemind
+// Called by POST /cron/remind every 30 min via GitHub Actions
+// Checks for mandatory/habit/anchor tasks scheduled in the next 35 minutes
+// and posts a Discord reminder if not already notified.
+// ---------------------------------------------------------------------------
+export async function runRemind() {
+  const now      = new Date()
+  const windowEnd = new Date(now.getTime() + 35 * 60 * 1000).toISOString()
+  const nowIso   = now.toISOString()
+
+  const { data: upcoming, error } = await supabase
+    .from('task')
+    .select('id, title, task_type, priority, scheduled_at, time_block')
+    .eq('status', 'pending')
+    .in('task_type', ['mandatory', 'habit', 'anchor'])
+    .not('scheduled_at', 'is', null)
+    .gte('scheduled_at', nowIso)
+    .lte('scheduled_at', windowEnd)
+    .is('reminded_at', null)
+
+  if (error) throw error
+
+  const notified = []
+
+  for (const task of upcoming || []) {
+    const minsAway = Math.round(
+      (new Date(task.scheduled_at) - now) / 60000
+    )
+
+    const icon = task.task_type === 'mandatory' ? '⚔' :
+                 task.task_type === 'habit'     ? '🔄' : '⚓'
+
+    const message = `${icon} **INCOMING** — ${task.title} — in ${minsAway} min`
+
+    await postToDiscord(message)
+
+    await supabase
+      .from('task')
+      .update({ reminded_at: now.toISOString() })
+      .eq('id', task.id)
+
+    notified.push(task.id)
+  }
+
+  return { notified_count: notified.length, task_ids: notified }
 }
 
 // ---------------------------------------------------------------------------
