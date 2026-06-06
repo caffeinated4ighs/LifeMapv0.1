@@ -17,12 +17,13 @@ import {
   buyItem
 } from './dbAgent.js';
 import { runMorning, runEod, runCleanup } from './cronAgent.js';
-import { postToDiscord } from './discordBot.js';
+import { postToDiscord, initDiscordBot } from './discordBot.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 loadConfig();
 initGoogleClient();
+initDiscordBot();
 
 const app = express();
 app.use(express.json());

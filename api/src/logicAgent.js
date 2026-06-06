@@ -67,6 +67,14 @@ export function computeNewLevel(currentLevel, currentXp, xpGained) {
   };
 }
 
+export function computeEnergyDrain(task) {
+  const mechanics = getConfig().mechanics
+  if (task.task_type === 'routine') return mechanics.energy_drain_floor
+  const base   = mechanics.energy_drain_base[task.task_type] ?? 5
+  const offset = mechanics.energy_drain_difficulty_offset[task.difficulty] ?? 0
+  return Math.max(mechanics.energy_drain_floor, base + offset)
+}
+
 export function deriveCrossoverLabel(similarityScore) {
   const config = getConfig();
   const crossoverLabels = config.mechanics.skill_xp_crossover_label;

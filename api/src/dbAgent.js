@@ -98,7 +98,7 @@ export async function getPlayerState() {
 
     supabase
       .from('daily_state')
-      .select('day_streak, mandatory_met, streak_multiplier')
+      .select('day_streak, mandatory_met, streak_multiplier, day_off_granted')
       .eq('id', 1)
       .single(),
   ]);
@@ -137,7 +137,10 @@ export async function getPlayerState() {
       day_streak: daily.day_streak,
       mandatory_met: daily.mandatory_met,
       streak_multiplier: daily.streak_multiplier,
-    }
+      day_off_granted: daily.day_off_granted,
+    },
+
+    day_off_granted: daily.day_off_granted,
   };
 }
 
@@ -240,7 +243,8 @@ export async function addArc(arcData) {
     .from('arc')
     .insert({
       ...arcData,
-      status: 'active'
+      status: 'active',
+      energy_regen_multiplier: arcData.energy_regen_multiplier ?? 1.0
     })
     .select()
     .single();
@@ -274,6 +278,7 @@ export async function completeTask(taskId) {
 
   const player = await getPlayerState();
   const { xp, gold } = logicAgent.computeTaskRewards(task);
+  const energyDrain = logicAgent.computeEnergyDrain(task)
   
   const streakMult = logicAgent.computeStreakMultiplier(
     player.streak.day_streak
@@ -305,7 +310,9 @@ export async function completeTask(taskId) {
     p_new_level:      newLevel,
     p_new_xp:         newXp,
     p_new_xp_to_next: newXpToNext,
-    p_leveled_up:     leveledUp
+    p_leveled_up:     leveledUp,
+    p_energy_drain:   energyDrain,
+    p_is_recovery:    task.is_recovery ?? false
   })
 
   if (error) {

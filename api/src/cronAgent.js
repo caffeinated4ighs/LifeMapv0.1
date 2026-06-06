@@ -111,6 +111,29 @@ export async function runMorning() {
     })
     .eq('id', 1)
 
+  // Passive energy regen
+  const mechanics = getConfig().mechanics
+  const regen = mechanics.energy_recovery.passive_morning_regen
+
+  // Get active arc multiplier (default 1.0 if none)
+  const { data: arc } = await supabase
+    .from('arc')
+    .select('energy_regen_multiplier')
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
+
+  const arcMult = arc?.energy_regen_multiplier ?? 1.0
+  const totalRegen = Math.round(regen * arcMult)
+
+  await supabase.rpc('regen_energy', { p_amount: totalRegen })
+
+  // Reset day_off_granted for new day
+  await supabase
+    .from('daily_state')
+    .update({ day_off_granted: false })
+    .eq('id', 1)
+
   // 6. Build morning briefing object
   const { data: player } = await supabase
     .from('player')
@@ -257,6 +280,22 @@ export async function runEod() {
     .eq('status', 'completed')
     .gte('completed_at', today)
 
+  // Recovery task energy restoration
+  const mechanics = getConfig().mechanics
+
+  const { data: recoveryTasks } = await supabase
+    .from('task')
+    .select('id')
+    .eq('is_recovery', true)
+    .eq('status', 'completed')
+    .gte('completed_at', today)
+
+  const recoveryCount = (recoveryTasks || []).length
+  if (recoveryCount > 0) {
+    const restore = recoveryCount * mechanics.energy_recovery.per_recovery_task
+    await supabase.rpc('regen_energy', { p_amount: restore })
+  }
+
   // Count tasks that will be carried over (still pending with scheduled_at < tomorrow)
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
   const { count: tasksToCarryOver } = await supabase
@@ -316,7 +355,9 @@ export async function runEod() {
     streak_multiplier:     streakMultiplier,
     tasks_completed_today: tasksCompletedToday || 0,
     tasks_to_carry_over:   tasksToCarryOver || 0,
-    skills_decaying:       decayingSkills
+    skills_decaying:       decayingSkills,
+    recovery_tasks_completed: recoveryCount,
+    energy_restored: recoveryCount * mechanics.energy_recovery.per_recovery_task
   }
 }
 

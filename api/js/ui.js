@@ -90,6 +90,30 @@ function energyClass(threshold_label) {
   return map[threshold_label] ?? 'energy-normal'
 }
 
+// ── Day-off badge (navbar only) ──────────────────────────────────────────────
+// Call with state.day_off_granted from /state endpoint.
+// Inserts/removes a <span class="day-off-badge">DAY OFF</span> next to
+// the energy display. Safe to call on every state refresh.
+function updateDayOffBadge(dayOffGranted) {
+  const BADGE_ID = 'day-off-badge'
+  const energyEl = document.querySelector('.navbar-energy, #navbar-energy, [data-energy]')
+  if (!energyEl) return
+
+  let badge = document.getElementById(BADGE_ID)
+
+  if (dayOffGranted) {
+    if (!badge) {
+      badge = document.createElement('span')
+      badge.id = BADGE_ID
+      badge.className = 'day-off-badge'
+      badge.textContent = 'DAY OFF'
+      energyEl.insertAdjacentElement('afterend', badge)
+    }
+  } else {
+    badge?.remove()
+  }
+}
+
 // ── XP bar width percentage (clamped 0–100) ──────────────────────────────────
 function xpPercent(current, toNext) {
   if (!toNext || toNext === 0) return 0

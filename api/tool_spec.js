@@ -17,7 +17,7 @@ export const toolSpecMap = {
   },
   add_task: {
     name: 'add_task',
-    description: 'Add a new task. Requires title and task_type. Priority and difficulty default to P2 and medium. If no scheduled_at or time_block is provided, the task will appear in the daily list without a specific time slot', 
+    description: 'Add a new task. Always infer task_type, priority, difficulty, and is_recovery from the title and context — never default blindly to mandatory/P2/medium. Confirm your inferred values with the user before calling this tool.',
     parameters: {
       type: 'object',
       properties: {
@@ -29,7 +29,11 @@ export const toolSpecMap = {
         scheduled_at:       { type: 'string', description: 'ISO timestamp' },
         time_block:         { type: 'string', enum: ['morning','noon','evening','night','midnight'] },
         recurrence_pattern: { type: 'string', description: 'Cron-style string for recurring tasks' },
-        arc_id:             { type: 'number', description: 'Arc ID to link this task to' }
+        arc_id:             { type: 'number', description: 'Arc ID to link this task to' },
+        is_recovery: {
+          type: 'boolean',
+          description: 'True if this task restores energy (sleep, shower, nap, meditation, leisure walk, journaling). False for physically or mentally draining tasks even if healthy (gym, running, deep work). When uncertain, default false.'
+        }
       },
       required: ['title', 'task_type']
     }
@@ -37,7 +41,7 @@ export const toolSpecMap = {
 
   remove_task: {
     name: 'remove_task',
-    description: 'Cancel a task. Sets status to cancelled — does not delete.',
+    description: 'Cancel a task. Always call get_tasks first to get the task id. Sets status to cancelled — does not delete.',
     parameters: {
       type: 'object',
       properties: {
@@ -49,7 +53,7 @@ export const toolSpecMap = {
 
   reschedule_task: {
     name: 'reschedule_task',
-    description: 'Change a task scheduled_at timestamp or time_block. At least one must be provided.',
+    description: 'Change a task scheduled_at timestamp or time_block. Always call get_tasks first to get the task id. At least one of scheduled_at or time_block must be provided.',
     parameters: {
       type: 'object',
       properties: {
@@ -63,7 +67,7 @@ export const toolSpecMap = {
 
   complete_task: {
     name: 'complete_task',
-    description: 'Mark a task as done. Awards XP and gold. Updates streak. Detects level-up.',
+    description: 'Mark a task as done. Always call get_tasks first to get the task id and verify status is pending. Match by meaning not exact title. Awards XP, gold, and drains energy. Updates streak. Detects level-up.',
     parameters: {
       type: 'object',
       properties: {
@@ -83,7 +87,8 @@ export const toolSpecMap = {
         description:     { type: 'string' },
         end_date:        { type: 'string', description: 'ISO date string YYYY-MM-DD' },
         xp_multiplier:   { type: 'number', description: 'Default 1.0' },
-        gold_multiplier: { type: 'number', description: 'Default 1.0' }
+        gold_multiplier: { type: 'number', description: 'Default 1.0' },
+        energy_regen_multiplier: { type: 'number', description: 'Multiplier on morning passive energy regen. Default 1.0.' }
       },
       required: ['name']
     }
@@ -103,7 +108,7 @@ export const toolSpecMap = {
 
   add_shop_item: {
     name: 'add_shop_item',
-    description: 'Add a new item to the shop catalogue. LLM-writable. Type must be leisure, activity, or day_off.',
+    description: 'Add a new item to the shop catalogue. LLM-writable. Type must be leisure or day_off.',
     parameters: {
       type: 'object',
       properties: {
