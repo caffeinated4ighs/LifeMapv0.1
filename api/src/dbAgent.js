@@ -373,6 +373,108 @@ export async function buyItem(itemId) {
   return data
 }
 
+export async function getStats() {
+  const { data, error } = await supabase
+    .from('stat')
+    .select('id, name, description, icon, current_value, current_streak')
+    .order('name', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+// Extended shop query — includes today's purchase counts per item.
+// Used by GET /shop (frontend). The existing getShopItems() is kept for
+// internal LLM tool use (get_shop_items tool) and is not replaced.
+export async function getShopWithCounts() {
+  const today = new Date().toISOString().split('T')[0]
+
+  const [itemsRes, purchasesRes] = await Promise.all([
+    supabase
+      .from('economy_item')
+      .select('id, name, description, cost_gold, type')
+      .eq('active', true)
+      .order('cost_gold', { ascending: true }),
+
+    supabase
+      .from('purchase_log')
+      .select('economy_item_id')
+      .gte('purchased_at', `${today}T00:00:00`)
+  ])
+
+  if (itemsRes.error)     throw itemsRes.error
+  if (purchasesRes.error) throw purchasesRes.error
+
+  const counts = {}
+  for (const p of purchasesRes.data || []) {
+    counts[p.economy_item_id] = (counts[p.economy_item_id] || 0) + 1
+  }
+
+  return (itemsRes.data || []).map(item => ({
+    ...item,
+    purchased_today: counts[item.id] || 0
+  }))
+}
+
+export async function getSnapshots() {
+  const { data, error } = await supabase
+    .from('daily_snapshot')
+    .select('*')
+    .order('date', { ascending: true })
+    .limit(30)
+  if (error) throw error
+  return data || []
+}
+
+// Returns per-day task summary for a given month (YYYY-MM).
+// Each entry: { total, completed, carried, missed }
+// Routine tasks excluded from dots per spec.
+export async function getCalendar(month) {
+  const [year, mon] = month.split('-').map(Number)
+  const start = `${month}-01`
+  // Last day of the month
+  const end = new Date(year, mon, 1).toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from('task')
+    .select('scheduled_at, completed_at, status, late_multiplier, task_type')
+    .not('task_type', 'eq', 'routine')
+    .neq('status', 'cancelled')
+    .or(
+      `scheduled_at.gte.${start}T00:00:00,scheduled_at.lt.${end}T00:00:00,` +
+      `completed_at.gte.${start}T00:00:00,completed_at.lt.${end}T00:00:00`
+    )
+
+  if (error) throw error
+
+  const days = {}
+  for (const task of data || []) {
+    // Use whichever date is most meaningful for display
+    const dateStr = task.completed_at
+      ? task.completed_at.split('T')[0]
+      : task.scheduled_at
+        ? task.scheduled_at.split('T')[0]
+        : null
+
+    if (!dateStr) continue
+
+    if (!days[dateStr]) {
+      days[dateStr] = { total: 0, completed: 0, carried: 0, missed: 0 }
+    }
+
+    days[dateStr].total++
+
+    if (task.status === 'completed') {
+      days[dateStr].completed++
+    } else if (task.late_multiplier < 1.0) {
+      days[dateStr].carried++
+    } else {
+      days[dateStr].missed++
+    }
+  }
+
+  return days
+}
+
 export async function getSkills() {
   const { data, error } = await supabase
     .from('skill')

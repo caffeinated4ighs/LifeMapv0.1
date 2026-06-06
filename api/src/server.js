@@ -1,11 +1,25 @@
 import 'dotenv/config';
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { loadConfig, buildSystemPrompt, getRuntime } from './configLoader.js';
 import { createConversation, insertMessage, assembleContext } from './sessionManager.js';
 import { initGoogleClient, sendChat } from './googleClient.js'
-import { buildStateString } from './dbAgent.js';
+import {
+  buildStateString,
+  getPlayerState,
+  getTasksToday,
+  getStats,
+  getShopWithCounts,
+  getSnapshots,
+  getCalendar,
+  getSkills,
+  buyItem
+} from './dbAgent.js';
 import { runMorning, runEod, runCleanup } from './cronAgent.js';
 import { postToDiscord } from './discordBot.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 loadConfig();
 initGoogleClient();
@@ -117,6 +131,134 @@ app.post('/cron/cleanup', requireCronSecret, async (req, res) => {
   } catch (error) {
     console.error('Cleanup cron error:', error.message)
     return res.status(500).json({ error: error.message })
+  }
+})
+
+// ---------------------------------------------------------------------------
+// Static serving — serves api/index.html and api/css|js assets
+// __dirname is api/src, so we step up one level to api/
+// ---------------------------------------------------------------------------
+app.use(express.static(path.join(__dirname, '..')))
+
+// ---------------------------------------------------------------------------
+// Frontend data endpoints (GET, no auth, no LLM)
+// ---------------------------------------------------------------------------
+
+// Player state, energy, streak — used by navbar
+app.get('/state', async (req, res) => {
+  try {
+    const state = await getPlayerState()
+    return res.json(state)
+  } catch (error) {
+    console.error('GET /state error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// Tasks for a given date (defaults to today).
+// Returns tasks where scheduled_at or completed_at falls on that date,
+// plus all unscheduled pending tasks when date = today.
+app.get('/tasks', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const date  = req.query.date || today
+
+    // Re-use getTasksToday when requesting today — handles unscheduled
+    // + routine time-block filtering correctly already.
+    if (date === today) {
+      const tasks = await getTasksToday()
+      return res.json(tasks)
+    }
+
+    // Historical date — tasks scheduled or completed on that date.
+    const { supabase } = await import('./supabaseClient.js')
+    const { data, error } = await supabase
+      .from('task')
+      .select('*')
+      .neq('status', 'cancelled')
+      .or(
+        `scheduled_at.gte.${date}T00:00:00,scheduled_at.lte.${date}T23:59:59,` +
+        `completed_at.gte.${date}T00:00:00,completed_at.lte.${date}T23:59:59`
+      )
+      .order('scheduled_at', { ascending: true, nullsFirst: false })
+
+    if (error) throw error
+    return res.json(data || [])
+  } catch (error) {
+    console.error('GET /tasks error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// Shop items with today's purchase counts
+app.get('/shop', async (req, res) => {
+  try {
+    const items = await getShopWithCounts()
+    return res.json(items)
+  } catch (error) {
+    console.error('GET /shop error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// All skills with XP, level, streak
+app.get('/skills', async (req, res) => {
+  try {
+    const skills = await getSkills()
+    return res.json(skills)
+  } catch (error) {
+    console.error('GET /skills error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// All 8 stats with current_value and streak
+app.get('/stats', async (req, res) => {
+  try {
+    const stats = await getStats()
+    return res.json(stats)
+  } catch (error) {
+    console.error('GET /stats error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// Last 30 days of daily_snapshot rows (chronological, for graphs)
+app.get('/snapshots', async (req, res) => {
+  try {
+    const snapshots = await getSnapshots()
+    return res.json(snapshots)
+  } catch (error) {
+    console.error('GET /snapshots error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// Per-day task summary for a month — used by calendar dots.
+// Query param: month=YYYY-MM (defaults to current month)
+// Returns: { "YYYY-MM-DD": { total, completed, carried, missed }, ... }
+app.get('/calendar', async (req, res) => {
+  try {
+    const month = req.query.month || new Date().toISOString().slice(0, 7)
+    const days = await getCalendar(month)
+    return res.json(days)
+  } catch (error) {
+    console.error('GET /calendar error:', error.message)
+    return res.status(500).json({ error: error.message })
+  }
+})
+
+// Direct buy endpoint — bypasses LLM layer for instant UI purchases.
+// The LLM buy_item tool path still works unchanged via /chat.
+app.post('/buy/:itemId', async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.itemId, 10)
+    if (isNaN(itemId)) return res.status(400).json({ error: 'Invalid item ID' })
+    const result = await buyItem(itemId)
+    return res.json(result)
+  } catch (error) {
+    console.error('POST /buy error:', error.message)
+    return res.status(400).json({ error: error.message })
   }
 })
 

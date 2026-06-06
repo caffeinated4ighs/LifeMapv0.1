@@ -280,7 +280,35 @@ export async function runEod() {
     })
     .eq('id', 1)
 
-  // 8. Build EOD summary object
+  // 8. Write daily_snapshot for graphs/history
+  const { data: player } = await supabase
+    .from('player')
+    .select('current_level, current_xp, total_gold, available_gold')
+    .eq('id', 1)
+    .single()
+
+  const { data: energySnap } = await supabase
+    .from('energy_state')
+    .select('current')
+    .eq('id', 1)
+    .single()
+
+  await supabase
+    .from('daily_snapshot')
+    .insert({
+      date:            today,
+      level:           player.current_level,
+      current_xp:      player.current_xp,
+      total_gold:      player.total_gold,
+      available_gold:  player.available_gold,
+      day_streak:      newStreak,
+      energy:          energySnap?.current ?? null,
+      mandatory_met:   mandatoryMet,
+      tasks_completed: tasksCompletedToday || 0,
+      tasks_carried:   tasksToCarryOver   || 0
+    })
+
+  // 9. Build EOD summary object
   return {
     date:                  today,
     mandatory_met:         mandatoryMet,

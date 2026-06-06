@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LIFE MAP</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       NAVBAR — always visible, fixed top
+  ════════════════════════════════════════════════════════════════ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <span class="brand-mark">◈</span>
+      <span class="brand-name">LIFE MAP</span>
+    </div>
+
+    <div class="nav-stats">
+
+      <!-- Energy -->
+      <div class="nav-stat" id="nav-energy">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-body">
+          <span class="stat-label">ENERGY</span>
+          <div class="stat-bar-row">
+            <div class="mini-bar">
+              <div class="mini-bar-fill" id="energy-bar-fill"></div>
+            </div>
+            <span class="stat-value mono" id="energy-value">—/100</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <!-- Streak -->
+      <div class="nav-stat" id="nav-streak">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-body">
+          <span class="stat-label">STREAK</span>
+          <span class="stat-value mono" id="streak-value">—</span>
+        </div>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <!-- Level — clickable, opens dropdown -->
+      <div class="nav-stat nav-level" id="nav-level" role="button" tabindex="0" aria-expanded="false">
+        <span class="stat-icon">◈</span>
+        <div class="stat-body">
+          <span class="stat-label">LEVEL</span>
+          <div class="stat-bar-row">
+            <span class="stat-value mono" id="level-value">—</span>
+            <div class="mini-bar xp-bar">
+              <div class="mini-bar-fill" id="xp-bar-fill"></div>
+            </div>
+            <span class="stat-value mono xp-fraction" id="xp-value">—</span>
+          </div>
+        </div>
+        <span class="level-caret">▾</span>
+
+        <!-- Level dropdown -->
+        <div class="level-dropdown" id="level-dropdown" hidden>
+          <div class="dropdown-rank" id="dropdown-rank">—</div>
+          <div class="dropdown-xp mono" id="dropdown-xp">— / — XP</div>
+          <div class="dropdown-bar">
+            <div class="dropdown-bar-fill" id="dropdown-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <!-- Gold -->
+      <div class="nav-stat" id="nav-gold">
+        <span class="stat-icon gold-icon">◆</span>
+        <div class="stat-body">
+          <span class="stat-label">GOLD</span>
+          <span class="stat-value mono gold-value" id="gold-value">—g</span>
+        </div>
+      </div>
+
+    </div><!-- /nav-stats -->
+
+    <!-- Modal trigger buttons -->
+    <div class="nav-actions">
+      <button class="nav-btn" data-modal="shop">🛒 Shop</button>
+      <button class="nav-btn" data-modal="stats">📊 Stats</button>
+      <button class="nav-btn" data-modal="skills">⚡ Skills</button>
+      <button class="nav-btn" data-modal="graphs">📈 Graphs</button>
+    </div>
+
+  </nav><!-- /navbar -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN LAYOUT — task list + chat, side by side
+  ════════════════════════════════════════════════════════════════ -->
+  <main id="main">
+
+    <!-- ── LEFT: Task Panel ─────────────────────────────────── -->
+    <section id="task-panel">
+
+      <!-- Next Task Card -->
+      <div class="panel-card next-task-card" id="next-task-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-label">▶ NEXT</span>
+          <span class="eyebrow-divider">—</span>
+          <span class="eyebrow-type" id="next-type-label">—</span>
+        </div>
+        <div class="next-task-title" id="next-task-title">Loading...</div>
+        <div class="next-task-meta">
+          <span class="meta-tag priority-tag" id="next-priority">—</span>
+          <span class="meta-tag" id="next-difficulty">—</span>
+          <span class="meta-tag" id="next-timeblock">—</span>
+        </div>
+        <div class="next-task-rewards">
+          <span class="reward xp-reward" id="next-xp">+— XP</span>
+          <span class="reward gold-reward" id="next-gold">+—g</span>
+        </div>
+      </div>
+
+      <!-- Date Selector -->
+      <div class="date-selector">
+        <button class="date-nav-btn" id="date-prev" aria-label="Previous day">‹</button>
+        <button class="date-display" id="date-display">
+          <span id="date-label">Today</span>
+          <span class="cal-icon" data-modal="calendar">📅</span>
+        </button>
+        <button class="date-nav-btn" id="date-next" aria-label="Next day">›</button>
+      </div>
+
+      <!-- Task List -->
+      <div class="panel-card task-list-card">
+        <div class="task-list-header">
+          <span class="section-title">TASKS</span>
+          <span class="task-count mono" id="task-count">0</span>
+        </div>
+        <div id="task-list">
+          <!-- Populated by tasks.js -->
+          <div class="task-skeleton"></div>
+          <div class="task-skeleton"></div>
+          <div class="task-skeleton"></div>
+        </div>
+      </div>
+
+    </section><!-- /task-panel -->
+
+
+    <!-- ── RIGHT: Chat Panel ────────────────────────────────── -->
+    <section id="chat-panel">
+      <div class="panel-card chat-card">
+
+        <div class="chat-header">
+          <span class="section-title">SYSTEM INTERFACE</span>
+          <span class="chat-session mono">SESSION: WEB</span>
+        </div>
+
+        <div id="chat-messages">
+          <!-- Populated by chat.js -->
+          <div class="chat-welcome">
+            <div class="welcome-mark">◈</div>
+            <div class="welcome-text">System online. How can I assist?</div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="typing-indicator" id="typing-indicator" hidden>
+            <span></span><span></span><span></span>
+          </div>
+          <div class="input-row">
+            <textarea
+              id="chat-input"
+              placeholder="Enter command..."
+              rows="1"
+              autocomplete="off"
+              spellcheck="false"
+            ></textarea>
+            <button id="chat-send" aria-label="Send">
+              <span class="send-arrow">▶</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- /chat-panel -->
+
+  </main><!-- /main -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL OVERLAY
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="modal-overlay" hidden>
+    <div id="modal-container">
+
+      <button id="modal-close" aria-label="Close">✕</button>
+
+      <!-- ── SHOP ───────────────────────────────────────────── -->
+      <div class="modal-pane" id="modal-shop" hidden>
+        <div class="modal-header">
+          <span class="modal-title">SHOP</span>
+          <span class="modal-gold-display">
+            <span class="gold-icon">◆</span>
+            <span class="mono" id="shop-gold-display">—g available</span>
+          </span>
+        </div>
+        <div class="shop-grid" id="shop-grid">
+          <!-- Populated by shop.js -->
+        </div>
+      </div>
+
+      <!-- ── STATS ──────────────────────────────────────────── -->
+      <div class="modal-pane" id="modal-stats" hidden>
+        <div class="modal-header">
+          <span class="modal-title">STATS</span>
+        </div>
+        <div class="stats-grid" id="stats-grid">
+          <!-- Populated by stats.js -->
+        </div>
+      </div>
+
+      <!-- ── SKILLS ─────────────────────────────────────────── -->
+      <div class="modal-pane" id="modal-skills" hidden>
+        <div class="modal-header">
+          <span class="modal-title">SKILLS</span>
+        </div>
+        <div class="skills-list" id="skills-list">
+          <!-- Populated by skills.js -->
+        </div>
+      </div>
+
+      <!-- ── CALENDAR ───────────────────────────────────────── -->
+      <div class="modal-pane" id="modal-calendar" hidden>
+        <div class="modal-header">
+          <span class="modal-title">CALENDAR</span>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="cal-prev">‹</button>
+            <span class="cal-month-label mono" id="cal-month-label">—</span>
+            <button class="cal-nav-btn" id="cal-next">›</button>
+          </div>
+        </div>
+        <div class="calendar-grid-wrap">
+          <div class="cal-weekdays">
+            <span>Mo</span><span>Tu</span><span>We</span>
+            <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+          </div>
+          <div class="cal-days" id="cal-days">
+            <!-- Populated by calendar.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GRAPHS ─────────────────────────────────────────── -->
+      <div class="modal-pane" id="modal-graphs" hidden>
+        <div class="modal-header">
+          <span class="modal-title">PROGRESSION</span>
+          <div class="graphs-tabs">
+            <button class="graph-tab active" data-tab="progression">Progression</button>
+            <button class="graph-tab" data-tab="activity">Activity</button>
+          </div>
+        </div>
+
+        <div class="graphs-content" id="graphs-progression">
+          <div class="chart-wrap"><canvas id="chart-xp"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-gold"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-energy"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-streak"></canvas></div>
+        </div>
+
+        <div class="graphs-content" id="graphs-activity" hidden>
+          <div class="chart-wrap"><canvas id="chart-tasks"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-mandatory"></canvas></div>
+        </div>
+      </div>
+
+    </div><!-- /modal-container -->
+  </div><!-- /modal-overlay -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCRIPTS — load order matters
+  ════════════════════════════════════════════════════════════════ -->
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/skills.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/graphs.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
