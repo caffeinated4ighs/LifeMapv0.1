@@ -50,7 +50,10 @@ function formatDate(dateStr) {
 function formatTime(isoStr) {
   if (!isoStr) return null
   const d = new Date(isoStr)
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return d.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  })
 }
 
 function todayStr() {
@@ -70,16 +73,6 @@ function computeDisplayRewards(task) {
   const xp = XP_BASE[task.task_type] ?? 0
   const gold = Math.max(1, (GOLD_BASE[task.priority] ?? 3) + (DIFF_OFFSET[task.difficulty] ?? 0))
   return { xp, gold }
-}
-
-const ENERGY_DRAIN_BASE = { mandatory: 8, habit: 6, project: 10, bonus: 3, anchor: 10, routine: 2 }
-const ENERGY_DRAIN_DIFF = { low: -2, medium: 0, high: 4 }
-
-function computeDisplayEnergyCost(task) {
-  if (task.task_type === 'routine') return 1
-  const base   = ENERGY_DRAIN_BASE[task.task_type] ?? 5
-  const offset = ENERGY_DRAIN_DIFF[task.difficulty] ?? 0
-  return Math.max(1, base + offset)
 }
 
 // ── Streak class helper ──────────────────────────────────────────────────────
@@ -106,7 +99,7 @@ function energyClass(threshold_label) {
 // the energy display. Safe to call on every state refresh.
 function updateDayOffBadge(dayOffGranted) {
   const BADGE_ID = 'day-off-badge'
-  const energyEl = document.getElementById('nav-energy')
+  const energyEl = document.querySelector('.navbar-energy, #navbar-energy, [data-energy]')
   if (!energyEl) return
 
   let badge = document.getElementById(BADGE_ID)

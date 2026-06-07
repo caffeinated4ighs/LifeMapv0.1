@@ -41,7 +41,7 @@ export async function getTasksToday() {
     }
   }
 
-  const currentHour = new Date().getUTCHours()
+  const currentHour = new Date().getHours()
   const passedBlocks = []
   if (currentHour >= 12) passedBlocks.push('morning')
   if (currentHour >= 14) passedBlocks.push('noon')
@@ -150,7 +150,33 @@ export async function buildStateString() {
   const { level, current_xp, xp_to_next, available_gold, energy, streak } = playerState
   const rank = getRank(level)
 
-  return `Lv${level} ${rank} | XP ${current_xp}/${xp_to_next} | Gold ${available_gold}g | Streak +${streak.day_streak} | Energy ${energy.current}/${energy.max} (${energy.threshold_label}) | Mandatory: ${streak.mandatory_met}`
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  })
+  const timeStr = now.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  })
+
+  const tasks = await getTasksToday()
+  const taskLines = tasks.length
+    ? tasks.map(t =>
+        `  [${t.id}] ${t.task_type.toUpperCase()} | ${t.title} | ${t.priority} | ${t.difficulty} | ${t.status}` +
+        (t.scheduled_at
+          ? ' | ' + new Date(t.scheduled_at).toLocaleTimeString('en-US', {
+              timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true
+            })
+          : '')
+      ).join('\n')
+    : '  (none)'
+
+  return [
+    `DATE: ${dateStr} ${timeStr} EST`,
+    `Lv${level} ${rank} | XP ${current_xp}/${xp_to_next} | Gold ${available_gold}g | Streak ${streak.day_streak} | Energy ${energy.current}/${energy.max} (${energy.threshold_label}) | Mandatory: ${streak.mandatory_met}`,
+    `TODAY'S TASKS:\n${taskLines}`
+  ].join('\n')
 }
 
 export async function addTask(taskData) {

@@ -96,6 +96,7 @@
 
     <!-- Modal trigger buttons -->
     <div class="nav-actions">
+      <button class="nav-btn nav-btn-add" id="btn-add-task">＋ Add Task</button>
       <button class="nav-btn" data-modal="shop">🛒 Shop</button>
       <button class="nav-btn" data-modal="stats">📊 Stats</button>
       <button class="nav-btn" data-modal="skills">⚡ Skills</button>
@@ -199,33 +200,6 @@
 
   </main><!-- /main -->
 
-  <!-- ── TASK DETAIL DRAWER ──────────────────────────────── -->
-  <div id="task-drawer" class="task-drawer" hidden>
-    <div class="drawer-inner">
-      <button class="drawer-close" id="drawer-close" aria-label="Close">✕</button>
-
-      <div class="drawer-header">
-        <span class="drawer-type-icon" id="drawer-type-icon">◈</span>
-        <div class="drawer-title-block">
-          <div class="drawer-title" id="drawer-title">—</div>
-          <div class="drawer-type-label" id="drawer-type-label">—</div>
-        </div>
-      </div>
-
-      <div class="drawer-badges" id="drawer-badges"></div>
-
-      <div class="drawer-description" id="drawer-description">No description.</div>
-
-      <div class="drawer-rewards">
-        <span class="reward xp-reward" id="drawer-xp">—</span>
-        <span class="reward gold-reward" id="drawer-gold">—</span>
-        <span class="reward energy-cost" id="drawer-energy">—</span>
-      </div>
-
-      <div class="drawer-actions" id="drawer-actions"></div>
-    </div>
-  </div>
-
 
   <!-- ═══════════════════════════════════════════════════════════
        MODAL OVERLAY
@@ -318,12 +292,116 @@
 
 
   <!-- ═══════════════════════════════════════════════════════════
+       ADD TASK OVERLAY
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="addtask-overlay" hidden>
+    <div id="addtask-panel">
+
+      <button id="addtask-close" aria-label="Close">✕</button>
+
+      <div class="at-header">
+        <span class="at-title">NEW TASK</span>
+        <span class="at-subtitle">Fields marked AUTO will be inferred by the model</span>
+      </div>
+
+      <form id="addtask-form" onsubmit="return false">
+
+        <!-- Title -->
+        <div class="at-field">
+          <label class="at-label" for="addtask-title">TITLE <span class="at-required">*</span></label>
+          <input id="addtask-title" class="at-input" type="text" placeholder="What needs to be done?" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <!-- Task Type -->
+        <div class="at-field">
+          <label class="at-label">TYPE <span class="at-required">*</span></label>
+          <div class="at-seg-group">
+            <button type="button" class="at-seg-btn active" data-group="task_type" data-value="mandatory" data-default>⚔ mandatory</button>
+            <button type="button" class="at-seg-btn" data-group="task_type" data-value="habit">🔄 habit</button>
+            <button type="button" class="at-seg-btn" data-group="task_type" data-value="project">📋 project</button>
+            <button type="button" class="at-seg-btn" data-group="task_type" data-value="bonus">⭐ bonus</button>
+            <button type="button" class="at-seg-btn" data-group="task_type" data-value="anchor">⚓ anchor</button>
+            <button type="button" class="at-seg-btn" data-group="task_type" data-value="routine">🌿 routine</button>
+          </div>
+        </div>
+
+        <!-- Priority -->
+        <div class="at-field">
+          <label class="at-label">PRIORITY <span class="at-autofill-hint">auto if unset</span></label>
+          <div class="at-seg-group">
+            <button type="button" class="at-seg-btn at-seg-p0" data-group="priority" data-value="P0">P0 critical</button>
+            <button type="button" class="at-seg-btn at-seg-p1" data-group="priority" data-value="P1">P1 high</button>
+            <button type="button" class="at-seg-btn at-seg-p2 active" data-group="priority" data-value="P2" data-default>P2 normal</button>
+            <button type="button" class="at-seg-btn at-seg-p3" data-group="priority" data-value="P3">P3 low</button>
+          </div>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="at-field">
+          <label class="at-label">DIFFICULTY <span class="at-autofill-hint">auto if unset</span></label>
+          <div class="at-seg-group">
+            <button type="button" class="at-seg-btn" data-group="difficulty" data-value="low">low</button>
+            <button type="button" class="at-seg-btn active" data-group="difficulty" data-value="medium" data-default>medium</button>
+            <button type="button" class="at-seg-btn" data-group="difficulty" data-value="high">high</button>
+          </div>
+        </div>
+
+        <!-- Time Block (no schedule) -->
+        <div class="at-field" id="addtask-timeblock-field">
+          <label class="at-label">TIME BLOCK <span class="at-autofill-hint">optional</span></label>
+          <div class="at-seg-group">
+            <button type="button" class="at-seg-btn" data-group="time_block" data-value="morning">morning</button>
+            <button type="button" class="at-seg-btn" data-group="time_block" data-value="noon">noon</button>
+            <button type="button" class="at-seg-btn" data-group="time_block" data-value="evening">evening</button>
+            <button type="button" class="at-seg-btn" data-group="time_block" data-value="night">night</button>
+            <button type="button" class="at-seg-btn" data-group="time_block" data-value="midnight">midnight</button>
+          </div>
+        </div>
+
+        <!-- Schedule toggle -->
+        <div class="at-field at-field-row">
+          <label class="at-label at-toggle-label" for="addtask-schedule-toggle">
+            <span>SPECIFIC TIME</span>
+            <div class="at-toggle-wrap">
+              <input type="checkbox" id="addtask-schedule-toggle" class="at-toggle-input" />
+              <span class="at-toggle-track"><span class="at-toggle-thumb"></span></span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Date + time (shown when toggle on) -->
+        <div class="at-schedule-row" id="addtask-scheduled-wrap" hidden>
+          <div class="at-field at-field-half">
+            <label class="at-label" for="addtask-date">DATE</label>
+            <input id="addtask-date" class="at-input" type="date" />
+          </div>
+          <div class="at-field at-field-half" id="addtask-time-wrap">
+            <label class="at-label" for="addtask-time">TIME (EST)</label>
+            <input id="addtask-time" class="at-input" type="time" />
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div id="addtask-error" class="at-error" hidden></div>
+
+        <!-- Actions -->
+        <div class="at-actions">
+          <button type="button" class="at-cancel-btn" id="addtask-cancel-btn">Cancel</button>
+          <button type="button" class="at-submit-btn" id="addtask-submit">Add Task</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
        SCRIPTS — load order matters
   ════════════════════════════════════════════════════════════════ -->
   <script src="js/ui.js"></script>
   <script src="js/api.js"></script>
   <script src="js/modals.js"></script>
   <script src="js/tasks.js"></script>
+  <script src="js/addtask.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/shop.js"></script>
   <script src="js/stats.js"></script>
