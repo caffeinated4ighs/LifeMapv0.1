@@ -1,0 +1,2 @@
+ALTER TABLE task
+  ADD COLUMN IF NOT EXISTS reminded_at timestamptz DEFAULT NULL;
