@@ -3,36 +3,41 @@
    Covers: task drawer, drawer edit form, day-off shop highlight
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── TASK PANEL — needs relative positioning for drawer overlay ─────────── */
+
+#task-panel {
+  position: relative;  /* drawer uses absolute positioning within this */
+}
+
 /* ── TASK DRAWER ─────────────────────────────────────────────────────────── */
+/* Overlays the task panel as an absolute child — no fixed positioning.       */
+/* Move #task-drawer to be inside <section id="task-panel"> in index.html.   */
 
 #task-drawer {
-  position: fixed;
-  top: var(--navbar-h);
-  left: 380px; /* aligns with right edge of task panel */
-  width: 340px;
-  bottom: 0;
-  z-index: 90;
+  position: absolute;
+  inset: 0;           /* covers the full task panel area */
+  z-index: 50;
   background: var(--surface);
-  border-right: 1px solid var(--glass-border-hi);
-  border-left: 1px solid var(--glass-border);
+  border: 1px solid var(--glass-border-hi);
+  border-radius: var(--radius);
   display: flex;
   flex-direction: column;
-  animation: drawer-in 200ms ease;
   overflow-y: auto;
+  animation: drawer-in 180ms ease;
 }
 
 #task-drawer[hidden] { display: none; }
 
 @keyframes drawer-in {
-  from { transform: translateX(-12px); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .drawer-inner {
-  padding: 18px 18px 24px;
+  padding: 16px 18px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   min-height: 100%;
 }
 
@@ -40,6 +45,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .drawer-header-left {
@@ -70,11 +76,10 @@
   cursor: pointer;
   transition: all var(--t-fast);
 }
-
 .drawer-close-btn:hover { border-color: var(--danger); color: var(--danger); }
 
 .drawer-title {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.35;
   color: var(--text);
@@ -154,7 +159,6 @@
   transition: opacity var(--t-fast);
   width: 100%;
 }
-
 .drawer-complete-btn:hover:not(:disabled) { opacity: 0.85; }
 .drawer-complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -170,7 +174,6 @@
   transition: all var(--t-fast);
   width: 100%;
 }
-
 .drawer-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
 .drawer-cancel-link {
@@ -182,8 +185,8 @@
   text-align: center;
   padding: 4px;
   transition: color var(--t-fast);
+  width: 100%;
 }
-
 .drawer-cancel-link:hover { color: var(--danger); }
 
 .drawer-completed-label {
@@ -255,13 +258,11 @@
   transition: border-color var(--t-fast);
   width: 100%;
 }
-
 .edit-input:focus { border-color: var(--accent); }
 .edit-input::placeholder { color: var(--text-dim); }
-
 input[type="datetime-local"].edit-input { color-scheme: dark; }
 
-.edit-textarea { resize: none; min-height: 64px; }
+.edit-textarea { resize: none; min-height: 60px; }
 
 .edit-seg-group {
   display: flex;
@@ -283,7 +284,6 @@ input[type="datetime-local"].edit-input { color-scheme: dark; }
   transition: all var(--t-fast);
   white-space: nowrap;
 }
-
 .edit-seg-btn:hover { border-color: var(--glass-border-hi); color: var(--text); }
 .edit-seg-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .at-seg-p0.active { background: rgba(229,62,62,0.12); border-color: var(--danger); color: var(--danger); }
@@ -332,7 +332,6 @@ input[type="datetime-local"].edit-input { color-scheme: dark; }
   border-color: rgba(72, 187, 120, 0.45);
   background: rgba(72, 187, 120, 0.06);
 }
-
 .shop-item.day-off-active .shop-item-name { color: var(--success); }
 
 .day-off-status-badge {
@@ -348,23 +347,16 @@ input[type="datetime-local"].edit-input { color-scheme: dark; }
   border-radius: 3px;
   background: rgba(72, 187, 120, 0.1);
 }
+.day-off-status-badge::before { content: '✓ '; }
 
-.day-off-status-badge::before { content: '✓'; }
-
-/* ── META TAG VARIANTS used by drawer ────────────────────────────────────── */
+/* ── META TAG VARIANTS ───────────────────────────────────────────────────── */
 .recovery-tag { border-color: rgba(72,187,120,0.3); color: var(--success); }
 .late-tag     { border-color: rgba(237,137,54,0.3); color: var(--warning); }
 
-/* ── MOBILE: drawer becomes full panel ───────────────────────────────────── */
+/* ── MOBILE ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   #task-drawer {
-    left: 0;
-    right: 0;
-    width: 100%;
-    top: 120px;
-    border-left: none;
-    border-right: none;
-    border-top: 1px solid var(--glass-border-hi);
-    z-index: 150;
+    border-radius: 0;
+    inset: 0;
   }
 }

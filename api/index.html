@@ -18,7 +18,6 @@
       <span class="brand-mark">◈</span>
       <span class="brand-name">LIFE MAP</span>
     </div>
-
     <div class="nav-stats">
       <div class="nav-stat" id="nav-energy">
         <span class="stat-icon">⚡</span>
@@ -31,7 +30,6 @@
         </div>
       </div>
       <div class="nav-divider"></div>
-
       <div class="nav-stat" id="nav-streak">
         <span class="stat-icon">🔥</span>
         <div class="stat-body">
@@ -40,7 +38,6 @@
         </div>
       </div>
       <div class="nav-divider"></div>
-
       <div class="nav-stat nav-level" id="nav-level" role="button" tabindex="0" aria-expanded="false">
         <span class="stat-icon">◈</span>
         <div class="stat-body">
@@ -59,7 +56,6 @@
         </div>
       </div>
       <div class="nav-divider"></div>
-
       <div class="nav-stat" id="nav-gold">
         <span class="stat-icon gold-icon">◆</span>
         <div class="stat-body">
@@ -68,7 +64,6 @@
         </div>
       </div>
     </div>
-
     <div class="nav-actions">
       <button class="nav-btn nav-btn-add" id="btn-add-task">＋ Add Task</button>
       <button class="nav-btn" data-modal="shop">🛒 Shop</button>
@@ -83,7 +78,127 @@
   <main id="main">
 
     <!-- ── LEFT: Task Panel ────────────────────────────────────────────── -->
+    <!-- IMPORTANT: #task-drawer is a CHILD of #task-panel so it overlays   -->
+    <!-- it using position:absolute. Do NOT move drawer outside this section.-->
     <section id="task-panel">
+
+      <!-- Task Detail Drawer — overlays the task panel on row click -->
+      <div id="task-drawer" hidden>
+        <div class="drawer-inner">
+
+          <div class="drawer-header">
+            <div class="drawer-header-left">
+              <span class="drawer-type-icon" id="drawer-type-icon">◈</span>
+              <span class="drawer-type-label mono" id="drawer-type-label">—</span>
+            </div>
+            <button class="drawer-close-btn" id="drawer-close" aria-label="Close">✕</button>
+          </div>
+
+          <!-- READ VIEW -->
+          <div id="drawer-read-view">
+            <div class="drawer-title" id="drawer-title">—</div>
+            <div class="drawer-badges" id="drawer-badges"></div>
+            <div class="drawer-description" id="drawer-description">—</div>
+            <div class="drawer-rewards">
+              <div class="drawer-reward-item">
+                <span class="drawer-reward-label">XP</span>
+                <span class="drawer-reward-value xp-color mono" id="drawer-xp">—</span>
+              </div>
+              <div class="drawer-reward-item">
+                <span class="drawer-reward-label">GOLD</span>
+                <span class="drawer-reward-value gold-color mono" id="drawer-gold">—</span>
+              </div>
+              <div class="drawer-reward-item">
+                <span class="drawer-reward-label">ENERGY</span>
+                <span class="drawer-reward-value energy-color mono" id="drawer-energy">—</span>
+              </div>
+            </div>
+            <div class="drawer-error" id="drawer-error" hidden></div>
+            <div class="drawer-actions" id="drawer-actions"></div>
+          </div>
+
+          <!-- EDIT VIEW -->
+          <div id="drawer-edit-view" hidden>
+            <div class="edit-section-title">EDIT TASK</div>
+
+            <div class="edit-field">
+              <label class="edit-label">TITLE</label>
+              <input id="edit-title" class="edit-input" type="text" autocomplete="off" spellcheck="false" />
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">TYPE</label>
+              <div class="edit-seg-group">
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="mandatory">⚔ mandatory</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="habit">🔄 habit</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="project">📋 project</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="bonus">⭐ bonus</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="anchor">⚓ anchor</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="routine">🌿 routine</button>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">PRIORITY</label>
+              <div class="edit-seg-group">
+                <button type="button" class="edit-seg-btn at-seg-p0" data-group="edit_priority" data-value="P0">P0</button>
+                <button type="button" class="edit-seg-btn at-seg-p1" data-group="edit_priority" data-value="P1">P1</button>
+                <button type="button" class="edit-seg-btn at-seg-p2" data-group="edit_priority" data-value="P2">P2</button>
+                <button type="button" class="edit-seg-btn at-seg-p3" data-group="edit_priority" data-value="P3">P3</button>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">DIFFICULTY</label>
+              <div class="edit-seg-group">
+                <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="low">low</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="medium">medium</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="high">high</button>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">TIME BLOCK <span class="edit-label-hint">optional</span></label>
+              <div class="edit-seg-group">
+                <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="morning">morning</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="noon">noon</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="evening">evening</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="night">night</button>
+                <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="midnight">midnight</button>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">SPECIFIC TIME <span class="edit-label-hint">overrides time block</span></label>
+              <input id="edit-scheduled-at" class="edit-input" type="datetime-local" />
+            </div>
+
+            <div class="edit-field edit-field-row">
+              <label class="edit-label edit-toggle-label" for="edit-is-recovery">
+                <span>RECOVERY TASK</span>
+                <div class="at-toggle-wrap">
+                  <input type="checkbox" id="edit-is-recovery" class="at-toggle-input" />
+                  <span class="at-toggle-track"><span class="at-toggle-thumb"></span></span>
+                </div>
+              </label>
+            </div>
+
+            <div class="edit-field">
+              <label class="edit-label">DESCRIPTION <span class="edit-label-hint">optional</span></label>
+              <textarea id="edit-description" class="edit-input edit-textarea" rows="3" spellcheck="false"></textarea>
+            </div>
+
+            <div class="drawer-error" id="drawer-edit-error" hidden></div>
+
+            <div class="edit-actions">
+              <button type="button" class="edit-cancel-btn" id="edit-cancel-btn">Cancel</button>
+              <button type="button" class="edit-save-btn" id="edit-save-btn">Save</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- /task-drawer -->
 
       <!-- Next Task Card -->
       <div class="panel-card next-task-card" id="next-task-card">
@@ -158,168 +273,29 @@
   </main>
 
 
-  <!-- ═══════════════ TASK DETAIL DRAWER ═══════════════════════════════════ -->
-  <!-- Slides in from the right of the task panel. Shown/hidden via tasks.js. -->
-  <div id="task-drawer" hidden>
-    <div class="drawer-inner">
-
-      <div class="drawer-header">
-        <div class="drawer-header-left">
-          <span class="drawer-type-icon" id="drawer-type-icon">◈</span>
-          <span class="drawer-type-label mono" id="drawer-type-label">—</span>
-        </div>
-        <button class="drawer-close-btn" id="drawer-close" aria-label="Close drawer">✕</button>
-      </div>
-
-      <!-- ── READ VIEW ─────────────────────────────────────────────────── -->
-      <div id="drawer-read-view">
-        <div class="drawer-title" id="drawer-title">—</div>
-
-        <div class="drawer-badges" id="drawer-badges"></div>
-
-        <div class="drawer-description" id="drawer-description">—</div>
-
-        <div class="drawer-rewards">
-          <div class="drawer-reward-item">
-            <span class="drawer-reward-label">XP</span>
-            <span class="drawer-reward-value xp-color mono" id="drawer-xp">—</span>
-          </div>
-          <div class="drawer-reward-item">
-            <span class="drawer-reward-label">GOLD</span>
-            <span class="drawer-reward-value gold-color mono" id="drawer-gold">—</span>
-          </div>
-          <div class="drawer-reward-item">
-            <span class="drawer-reward-label">ENERGY</span>
-            <span class="drawer-reward-value energy-color mono" id="drawer-energy">—</span>
-          </div>
-        </div>
-
-        <div class="drawer-error" id="drawer-error" hidden></div>
-
-        <div class="drawer-actions" id="drawer-actions"></div>
-      </div>
-
-      <!-- ── EDIT VIEW ─────────────────────────────────────────────────── -->
-      <div id="drawer-edit-view" hidden>
-        <div class="edit-section-title">EDIT TASK</div>
-
-        <!-- Title -->
-        <div class="edit-field">
-          <label class="edit-label">TITLE</label>
-          <input id="edit-title" class="edit-input" type="text" autocomplete="off" spellcheck="false" />
-        </div>
-
-        <!-- Task Type -->
-        <div class="edit-field">
-          <label class="edit-label">TYPE</label>
-          <div class="edit-seg-group">
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="mandatory">⚔ mandatory</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="habit">🔄 habit</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="project">📋 project</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="bonus">⭐ bonus</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="anchor">⚓ anchor</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="routine">🌿 routine</button>
-          </div>
-        </div>
-
-        <!-- Priority -->
-        <div class="edit-field">
-          <label class="edit-label">PRIORITY</label>
-          <div class="edit-seg-group">
-            <button type="button" class="edit-seg-btn at-seg-p0" data-group="edit_priority" data-value="P0">P0</button>
-            <button type="button" class="edit-seg-btn at-seg-p1" data-group="edit_priority" data-value="P1">P1</button>
-            <button type="button" class="edit-seg-btn at-seg-p2" data-group="edit_priority" data-value="P2">P2</button>
-            <button type="button" class="edit-seg-btn at-seg-p3" data-group="edit_priority" data-value="P3">P3</button>
-          </div>
-        </div>
-
-        <!-- Difficulty -->
-        <div class="edit-field">
-          <label class="edit-label">DIFFICULTY</label>
-          <div class="edit-seg-group">
-            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="low">low</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="medium">medium</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="high">high</button>
-          </div>
-        </div>
-
-        <!-- Time Block -->
-        <div class="edit-field">
-          <label class="edit-label">TIME BLOCK <span class="edit-label-hint">optional</span></label>
-          <div class="edit-seg-group">
-            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="morning">morning</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="noon">noon</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="evening">evening</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="night">night</button>
-            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="midnight">midnight</button>
-          </div>
-        </div>
-
-        <!-- Scheduled At -->
-        <div class="edit-field">
-          <label class="edit-label">SPECIFIC TIME <span class="edit-label-hint">overrides time block</span></label>
-          <input id="edit-scheduled-at" class="edit-input" type="datetime-local" />
-        </div>
-
-        <!-- Recovery toggle -->
-        <div class="edit-field edit-field-row">
-          <label class="edit-label edit-toggle-label" for="edit-is-recovery">
-            <span>RECOVERY TASK</span>
-            <div class="at-toggle-wrap">
-              <input type="checkbox" id="edit-is-recovery" class="at-toggle-input" />
-              <span class="at-toggle-track"><span class="at-toggle-thumb"></span></span>
-            </div>
-          </label>
-        </div>
-
-        <!-- Description -->
-        <div class="edit-field">
-          <label class="edit-label">DESCRIPTION <span class="edit-label-hint">optional</span></label>
-          <textarea id="edit-description" class="edit-input edit-textarea" rows="3" spellcheck="false"></textarea>
-        </div>
-
-        <div class="drawer-error" id="drawer-edit-error" hidden></div>
-
-        <div class="edit-actions">
-          <button type="button" class="edit-cancel-btn" id="edit-cancel-btn">Cancel</button>
-          <button type="button" class="edit-save-btn" id="edit-save-btn">Save</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-
   <!-- ═══════════════ MODAL OVERLAY ════════════════════════════════════════ -->
   <div id="modal-overlay" hidden>
     <div id="modal-container">
       <button id="modal-close" aria-label="Close">✕</button>
 
-      <!-- SHOP -->
       <div class="modal-pane" id="modal-shop" hidden>
         <div class="modal-header">
           <span class="modal-title">SHOP</span>
-          <span class="modal-gold-display">
-            <span class="gold-icon">◆</span>
-            <span class="mono" id="shop-gold-display">—g available</span>
-          </span>
+          <span class="modal-gold-display"><span class="gold-icon">◆</span><span class="mono" id="shop-gold-display">—g available</span></span>
         </div>
         <div class="shop-grid" id="shop-grid"></div>
       </div>
 
-      <!-- STATS -->
       <div class="modal-pane" id="modal-stats" hidden>
         <div class="modal-header"><span class="modal-title">STATS</span></div>
         <div class="stats-grid" id="stats-grid"></div>
       </div>
 
-      <!-- SKILLS -->
       <div class="modal-pane" id="modal-skills" hidden>
         <div class="modal-header"><span class="modal-title">SKILLS</span></div>
         <div class="skills-list" id="skills-list"></div>
       </div>
 
-      <!-- CALENDAR -->
       <div class="modal-pane" id="modal-calendar" hidden>
         <div class="modal-header">
           <span class="modal-title">CALENDAR</span>
@@ -330,15 +306,11 @@
           </div>
         </div>
         <div class="calendar-grid-wrap">
-          <div class="cal-weekdays">
-            <span>Mo</span><span>Tu</span><span>We</span>
-            <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
-          </div>
+          <div class="cal-weekdays"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
           <div class="cal-days" id="cal-days"></div>
         </div>
       </div>
 
-      <!-- GRAPHS -->
       <div class="modal-pane" id="modal-graphs" hidden>
         <div class="modal-header">
           <span class="modal-title">PROGRESSION</span>
@@ -366,21 +338,17 @@
   <div id="addtask-overlay" hidden>
     <div id="addtask-panel">
       <button id="addtask-close" aria-label="Close">✕</button>
-
       <div class="at-header">
         <span class="at-title">NEW TASK</span>
         <span class="at-subtitle">Title + type required. All other fields optional.</span>
       </div>
-
       <form id="addtask-form" onsubmit="return false">
 
-        <!-- Title -->
         <div class="at-field">
           <label class="at-label" for="addtask-title">TITLE <span class="at-required">*</span></label>
           <input id="addtask-title" class="at-input" type="text" placeholder="What needs to be done?" autocomplete="off" spellcheck="false" />
         </div>
 
-        <!-- Task Type -->
         <div class="at-field">
           <label class="at-label">TYPE <span class="at-required">*</span></label>
           <div class="at-seg-group">
@@ -393,7 +361,7 @@
           </div>
         </div>
 
-        <!-- Recurrence — shown only when routine is selected -->
+        <!-- Recurrence — only shown for routine -->
         <div class="at-field" id="addtask-recurrence-field" hidden>
           <label class="at-label">RECURRENCE <span class="at-required">*</span></label>
           <div class="at-seg-group">
@@ -404,7 +372,6 @@
           </div>
         </div>
 
-        <!-- Priority -->
         <div class="at-field">
           <label class="at-label">PRIORITY</label>
           <div class="at-seg-group">
@@ -415,7 +382,6 @@
           </div>
         </div>
 
-        <!-- Difficulty -->
         <div class="at-field">
           <label class="at-label">DIFFICULTY</label>
           <div class="at-seg-group">
@@ -425,7 +391,6 @@
           </div>
         </div>
 
-        <!-- Time Block -->
         <div class="at-field" id="addtask-timeblock-field">
           <label class="at-label">TIME BLOCK <span class="at-autofill-hint">optional</span></label>
           <div class="at-seg-group">
@@ -437,7 +402,6 @@
           </div>
         </div>
 
-        <!-- Schedule toggle -->
         <div class="at-field at-field-row">
           <label class="at-label at-toggle-label" for="addtask-schedule-toggle">
             <span>SPECIFIC TIME</span>
@@ -448,7 +412,6 @@
           </label>
         </div>
 
-        <!-- Date + time (shown when toggle on) -->
         <div class="at-schedule-row" id="addtask-scheduled-wrap" hidden>
           <div class="at-field at-field-half">
             <label class="at-label" for="addtask-date">DATE</label>
