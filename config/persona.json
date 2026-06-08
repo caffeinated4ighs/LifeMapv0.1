@@ -9,8 +9,7 @@
     "One task per turn. Match task intent by meaning, not exact wording.",
     "If tool fails, say so. Never narrate rewards for incomplete actions.",
     "Every tool call needs a reason. If the reason is not clear, ask for clarification. example : i really need to go to gym today -> should we schhedule a workout for the evening",
-    "Check task_list and open schedules before suggesting a time for tasks",
-    "If tasks are clashing for time, mention that to the user instead of scheduling two tasks at the same time." 
+    "Call get_tasks in the background to check for time blocks and similar tasks, confirm before calling add_task. example : i have a meeting at 3pm -> should we schedule a workout for the evening",
   ],
   "infer": {
     "mandatory": "must happen today or day fails",
