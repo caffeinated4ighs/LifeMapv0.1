@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/app_additions.css" />
 </head>
 <body>
 
@@ -77,9 +78,8 @@
   <!-- ═══════════════ MAIN LAYOUT ══════════════════════════════════════════ -->
   <main id="main">
 
-    <!-- ── LEFT: Task Panel ────────────────────────────────────────────── -->
-    <!-- IMPORTANT: #task-drawer is a CHILD of #task-panel so it overlays   -->
-    <!-- it using position:absolute. Do NOT move drawer outside this section.-->
+    <!-- ── LEFT: Task Panel ─────────────────────────────────────────────── -->
+    <!-- #task-drawer lives INSIDE here so it overlays via position:absolute -->
     <section id="task-panel">
 
       <!-- Task Detail Drawer — overlays the task panel on row click -->
@@ -125,7 +125,6 @@
               <label class="edit-label">TITLE</label>
               <input id="edit-title" class="edit-input" type="text" autocomplete="off" spellcheck="false" />
             </div>
-
             <div class="edit-field">
               <label class="edit-label">TYPE</label>
               <div class="edit-seg-group">
@@ -137,7 +136,6 @@
                 <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="routine">🌿 routine</button>
               </div>
             </div>
-
             <div class="edit-field">
               <label class="edit-label">PRIORITY</label>
               <div class="edit-seg-group">
@@ -147,7 +145,6 @@
                 <button type="button" class="edit-seg-btn at-seg-p3" data-group="edit_priority" data-value="P3">P3</button>
               </div>
             </div>
-
             <div class="edit-field">
               <label class="edit-label">DIFFICULTY</label>
               <div class="edit-seg-group">
@@ -156,7 +153,6 @@
                 <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="high">high</button>
               </div>
             </div>
-
             <div class="edit-field">
               <label class="edit-label">TIME BLOCK <span class="edit-label-hint">optional</span></label>
               <div class="edit-seg-group">
@@ -167,12 +163,10 @@
                 <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="midnight">midnight</button>
               </div>
             </div>
-
             <div class="edit-field">
               <label class="edit-label">SPECIFIC TIME <span class="edit-label-hint">overrides time block</span></label>
               <input id="edit-scheduled-at" class="edit-input" type="datetime-local" />
             </div>
-
             <div class="edit-field edit-field-row">
               <label class="edit-label edit-toggle-label" for="edit-is-recovery">
                 <span>RECOVERY TASK</span>
@@ -182,14 +176,12 @@
                 </div>
               </label>
             </div>
-
             <div class="edit-field">
               <label class="edit-label">DESCRIPTION <span class="edit-label-hint">optional</span></label>
               <textarea id="edit-description" class="edit-input edit-textarea" rows="3" spellcheck="false"></textarea>
             </div>
 
             <div class="drawer-error" id="drawer-edit-error" hidden></div>
-
             <div class="edit-actions">
               <button type="button" class="edit-cancel-btn" id="edit-cancel-btn">Cancel</button>
               <button type="button" class="edit-save-btn" id="edit-save-btn">Save</button>
@@ -361,7 +353,6 @@
           </div>
         </div>
 
-        <!-- Recurrence — only shown for routine -->
         <div class="at-field" id="addtask-recurrence-field" hidden>
           <label class="at-label">RECURRENCE <span class="at-required">*</span></label>
           <div class="at-seg-group">

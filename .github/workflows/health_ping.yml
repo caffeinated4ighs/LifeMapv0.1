@@ -1,7 +1,8 @@
 name: Health Ping
+
 on:
   schedule:
-    - cron: '*/14 * * * *'
+    - cron: '*/14 * * * *'  # every 14 minutes — keeps Render free tier alive
   workflow_dispatch:
 
 jobs:
