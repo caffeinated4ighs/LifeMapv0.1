@@ -12,7 +12,7 @@
   "gold_difficulty_offset": { "low": -2, "medium": 0, "high": 5 },
   "gold_floor": 1,
   "skill_match_floor": 0.65,
-  "streak_hit_threshold": 0.55,
+  "stat_match_floor": 0.40,
   "xp_level_formula": {
     "governs": "player_level_up",
     "type": "compound",
@@ -22,7 +22,7 @@
     "level_0_xp": 50,
     "level_1_xp": 100,
     "base_xp": 100,
-    "description": "Level N≥2: 100 × ∏(1.060 - 0.0075*(k-2)/(k+55)) for k=2..N. Level 10 ≈ 969 XP, Level 20 ≈ 2201 XP."
+    "description": "Level N≥2: 100 × ∏(1.060 - 0.0075*(k-2)/(k+55)) for k=2..N."
   },
   "skill_xp_formula": {
     "governs": "skill_level_up",
@@ -33,7 +33,7 @@
     "level_0_xp": 50,
     "level_1_xp": 100,
     "base_xp": 100,
-    "description": "Same curve as player levels but lower slope. Skill level 10 costs ~182 days at 5 skill XP/day."
+    "description": "Same curve as player levels but lower slope."
   },
   "skill_projection_tiers": [
     { "min": 0.30, "max": 0.39, "multiplier": 0.1 },
@@ -51,12 +51,12 @@
     "direct":    { "min": 0.90, "max": 1.00 }
   },
   "skill_candidate_threshold": 3,
-  "skill_candidate_max_distance": 0.4,
+  "skill_candidate_max_distance": 0.35,
   "decay_trigger_threshold": -7,
   "late_penalty": {
     "formula": "0.9 ^ days_delayed",
     "base": 0.9,
-    "description": "Compounding 10% penalty per day delayed on both XP and gold. No floor."
+    "description": "Compounding 10% penalty per day delayed."
   },
   "streak_formula": {
     "type": "power",
