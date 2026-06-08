@@ -12,7 +12,6 @@ export function initGoogleClient() {
 export async function sendChat(history, systemPrompt, message) {
 
   // Ensure history starts with a user role chunk — Gemini hard-requires this.
-  // Orphaned model messages at the front can occur after 503 retries.
   const safeHistory = history[0]?.role === 'model'
     ? history.slice(1)
     : history
@@ -23,10 +22,8 @@ export async function sendChat(history, systemPrompt, message) {
 
   const fullSpecs = Object.values(toolSpecMap)
 
-  // Pass 1 — Intent + Execution
-  // Model receives all tool specs. With mode AUTO it decides whether to call
-  // a tool or reply with plain text. Plain text exits here — one call total.
-  const pass1Model = genAI.getGenerativeModel({
+  // Agentic loop — max 6 iterations
+  const agentModel = genAI.getGenerativeModel({
     model: getRuntime().model.name,
     systemInstruction: pass1SystemPrompt,
     tools: [{ functionDeclarations: fullSpecs }],
@@ -37,29 +34,50 @@ export async function sendChat(history, systemPrompt, message) {
     }
   })
 
-  const chat1 = pass1Model.startChat({ history: safeHistory })
-  const result1 = await sendWithRetry(chat1, message)
-  if (process.env.NODE_ENV !== 'production') {
-    const usage = result1.response.usageMetadata
-    console.log(`[tokens] pass1 input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+  const chat = agentModel.startChat({ history: safeHistory })
+  let result = await sendWithRetry(chat, message)
+
+  const toolResults = []
+  let iterations = 0
+  const MAX_ITERATIONS = 6
+
+  while (iterations < MAX_ITERATIONS) {
+    const candidate = result.response.candidates[0]
+    const part = candidate?.content?.parts?.[0]
+
+    // No function call — model is done with tools
+    if (!part?.functionCall) break
+
+    const { name, args } = part.functionCall
+
+    if (process.env.NODE_ENV !== 'production') {
+      const usage = result.response.usageMetadata
+      console.log(`[tokens] loop iter ${iterations + 1} input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+    }
+
+    const toolResult = await handleToolCall(name, args)
+    const sanitizedResult = stripEmbeddings(toolResult)
+    toolResults.push({ tool: name, result: sanitizedResult })
+    iterations++
+
+    // Feed result back into the same chat so the model has full context
+    result = await sendWithRetry(
+      chat,
+      `Tool result for ${name}:\n${JSON.stringify(sanitizedResult)}`
+    )
   }
-  const candidate1 = result1.response.candidates[0]
-  const part1 = candidate1.content.parts[0]
 
-  if (!part1.functionCall) {
-    return result1.response.text()
+  // Pure text response — no tools used at all
+  if (toolResults.length === 0) {
+    if (process.env.NODE_ENV !== 'production') {
+      const usage = result.response.usageMetadata
+      console.log(`[tokens] direct text input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+    }
+    return result.response.text()
   }
 
-  const toolName = part1.functionCall.name
-  const toolArgs = part1.functionCall.args
-  const toolResult = await handleToolCall(toolName, toolArgs)
-
-  // Strip embedding vectors before sending to pass 2 — they're 3072 floats
-  // and blow up the narration prompt to 70k+ tokens
-  const sanitizedResult = stripEmbeddings(toolResult)
-
-  // Pass 2 — Narration
-  // No tools. Model receives the tool result and narrates it in persona.
+  // Single narration pass — fresh generateContent, no chat history, system prompt for persona
+  // Option A per spec: stateless generateContent call, not startChat
   const pass2Model = genAI.getGenerativeModel({
     model: getRuntime().model.name,
     systemInstruction: systemPrompt,
@@ -70,17 +88,19 @@ export async function sendChat(history, systemPrompt, message) {
     }
   })
 
-  const chat2 = pass2Model.startChat({ history: safeHistory })
-  const result2 = await sendWithRetry(
-    chat2,
-    `Tool result for ${toolName}:\n${JSON.stringify(sanitizedResult, null, 2)}\n\nNarrate this to the user in your persona.`
+  const summary = `Completed ${toolResults.length} action(s):\n` +
+    toolResults.map(r => `${r.tool}: ${JSON.stringify(r.result)}`).join('\n')
+
+  const narration = await pass2Model.generateContent(
+    `${summary}\n\nNarrate all of this to the user in your persona. Be concise.`
   )
+
   if (process.env.NODE_ENV !== 'production') {
-    const usage = result2.response.usageMetadata
-    console.log(`[tokens] pass2 input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
+    const usage = narration.response.usageMetadata
+    console.log(`[tokens] pass2 narration input: ${usage?.promptTokenCount} output: ${usage?.candidatesTokenCount}`)
   }
 
-  return result2.response.text()
+  return narration.response.text()
 }
 
 async function sendWithRetry(chat, message, maxRetries = 3) {
@@ -101,7 +121,6 @@ async function sendWithRetry(chat, message, maxRetries = 3) {
 }
 
 // Recursively remove embedding vector fields from any object/array.
-// Prevents 3072-float arrays from bloating the pass 2 narration prompt.
 function stripEmbeddings(obj) {
   if (Array.isArray(obj)) return obj.map(stripEmbeddings)
   if (obj && typeof obj === 'object') {

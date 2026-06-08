@@ -1,0 +1,370 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADDITIONS — append to the bottom of app.css
+   Covers: task drawer, drawer edit form, day-off shop highlight
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── TASK DRAWER ─────────────────────────────────────────────────────────── */
+
+#task-drawer {
+  position: fixed;
+  top: var(--navbar-h);
+  left: 380px; /* aligns with right edge of task panel */
+  width: 340px;
+  bottom: 0;
+  z-index: 90;
+  background: var(--surface);
+  border-right: 1px solid var(--glass-border-hi);
+  border-left: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  animation: drawer-in 200ms ease;
+  overflow-y: auto;
+}
+
+#task-drawer[hidden] { display: none; }
+
+@keyframes drawer-in {
+  from { transform: translateX(-12px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+.drawer-inner {
+  padding: 18px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-header-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.drawer-type-icon  { font-size: 1rem; }
+.drawer-type-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.drawer-close-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.drawer-close-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+.drawer-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.drawer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.drawer-description {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+
+.drawer-rewards {
+  display: flex;
+  gap: 6px;
+}
+
+.drawer-reward-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+
+.drawer-reward-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.drawer-reward-value { font-size: 0.8rem; font-weight: 600; }
+.xp-color     { color: var(--xp-color); }
+.gold-color   { color: var(--gold); }
+.energy-color { color: var(--accent); }
+
+.drawer-error {
+  font-size: 0.72rem;
+  color: var(--danger);
+  padding: 7px 10px;
+  background: var(--danger-dim);
+  border: 1px solid rgba(229,62,62,0.25);
+  border-radius: var(--radius-sm);
+}
+
+.drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.drawer-complete-btn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+  width: 100%;
+}
+
+.drawer-complete-btn:hover:not(:disabled) { opacity: 0.85; }
+.drawer-complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.drawer-edit-btn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border-hi);
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  width: 100%;
+}
+
+.drawer-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+.drawer-cancel-link {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  transition: color var(--t-fast);
+}
+
+.drawer-cancel-link:hover { color: var(--danger); }
+
+.drawer-completed-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success);
+  text-align: center;
+  padding: 8px;
+  letter-spacing: 0.05em;
+}
+
+/* ── DRAWER EDIT FORM ────────────────────────────────────────────────────── */
+
+.edit-section-title {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-field-row { flex-direction: row; align-items: center; }
+
+.edit-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.edit-label-hint {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-dim);
+  font-size: 0.55rem;
+}
+
+.edit-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  margin-bottom: 0;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.edit-input {
+  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-family: var(--font-ui);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--t-fast);
+  width: 100%;
+}
+
+.edit-input:focus { border-color: var(--accent); }
+.edit-input::placeholder { color: var(--text-dim); }
+
+input[type="datetime-local"].edit-input { color-scheme: dark; }
+
+.edit-textarea { resize: none; min-height: 64px; }
+
+.edit-seg-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.edit-seg-btn {
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+
+.edit-seg-btn:hover { border-color: var(--glass-border-hi); color: var(--text); }
+.edit-seg-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.at-seg-p0.active { background: rgba(229,62,62,0.12); border-color: var(--danger); color: var(--danger); }
+.at-seg-p1.active { background: rgba(237,137,54,0.12); border-color: var(--warning); color: var(--warning); }
+.at-seg-p3.active { background: var(--surface-2); border-color: var(--text-dim); color: var(--text-muted); }
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.edit-cancel-btn {
+  flex: 1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.edit-cancel-btn:hover { border-color: var(--glass-border-hi); color: var(--text); }
+
+.edit-save-btn {
+  flex: 2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.edit-save-btn:hover:not(:disabled) { opacity: 0.85; }
+.edit-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── DAY OFF — shop item green highlight ─────────────────────────────────── */
+
+.shop-item.day-off-active {
+  border-color: rgba(72, 187, 120, 0.45);
+  background: rgba(72, 187, 120, 0.06);
+}
+
+.shop-item.day-off-active .shop-item-name { color: var(--success); }
+
+.day-off-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--success);
+  padding: 4px 10px;
+  border: 1px solid var(--success);
+  border-radius: 3px;
+  background: rgba(72, 187, 120, 0.1);
+}
+
+.day-off-status-badge::before { content: '✓'; }
+
+/* ── META TAG VARIANTS used by drawer ────────────────────────────────────── */
+.recovery-tag { border-color: rgba(72,187,120,0.3); color: var(--success); }
+.late-tag     { border-color: rgba(237,137,54,0.3); color: var(--warning); }
+
+/* ── MOBILE: drawer becomes full panel ───────────────────────────────────── */
+@media (max-width: 768px) {
+  #task-drawer {
+    left: 0;
+    right: 0;
+    width: 100%;
+    top: 120px;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--glass-border-hi);
+    z-index: 150;
+  }
+}

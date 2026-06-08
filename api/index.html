@@ -4,23 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LIFE MAP</title>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <!-- Styles -->
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       NAVBAR — always visible, fixed top
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════ NAVBAR ═══════════════════════════════════════════════ -->
   <nav id="navbar">
     <div class="nav-brand">
       <span class="brand-mark">◈</span>
@@ -28,24 +20,18 @@
     </div>
 
     <div class="nav-stats">
-
-      <!-- Energy -->
       <div class="nav-stat" id="nav-energy">
         <span class="stat-icon">⚡</span>
         <div class="stat-body">
           <span class="stat-label">ENERGY</span>
           <div class="stat-bar-row">
-            <div class="mini-bar">
-              <div class="mini-bar-fill" id="energy-bar-fill"></div>
-            </div>
+            <div class="mini-bar"><div class="mini-bar-fill" id="energy-bar-fill"></div></div>
             <span class="stat-value mono" id="energy-value">—/100</span>
           </div>
         </div>
       </div>
-
       <div class="nav-divider"></div>
 
-      <!-- Streak -->
       <div class="nav-stat" id="nav-streak">
         <span class="stat-icon">🔥</span>
         <div class="stat-body">
@@ -53,37 +39,27 @@
           <span class="stat-value mono" id="streak-value">—</span>
         </div>
       </div>
-
       <div class="nav-divider"></div>
 
-      <!-- Level — clickable, opens dropdown -->
       <div class="nav-stat nav-level" id="nav-level" role="button" tabindex="0" aria-expanded="false">
         <span class="stat-icon">◈</span>
         <div class="stat-body">
           <span class="stat-label">LEVEL</span>
           <div class="stat-bar-row">
             <span class="stat-value mono" id="level-value">—</span>
-            <div class="mini-bar xp-bar">
-              <div class="mini-bar-fill" id="xp-bar-fill"></div>
-            </div>
+            <div class="mini-bar xp-bar"><div class="mini-bar-fill" id="xp-bar-fill"></div></div>
             <span class="stat-value mono xp-fraction" id="xp-value">—</span>
           </div>
         </div>
         <span class="level-caret">▾</span>
-
-        <!-- Level dropdown -->
         <div class="level-dropdown" id="level-dropdown" hidden>
           <div class="dropdown-rank" id="dropdown-rank">—</div>
           <div class="dropdown-xp mono" id="dropdown-xp">— / — XP</div>
-          <div class="dropdown-bar">
-            <div class="dropdown-bar-fill" id="dropdown-bar-fill"></div>
-          </div>
+          <div class="dropdown-bar"><div class="dropdown-bar-fill" id="dropdown-bar-fill"></div></div>
         </div>
       </div>
-
       <div class="nav-divider"></div>
 
-      <!-- Gold -->
       <div class="nav-stat" id="nav-gold">
         <span class="stat-icon gold-icon">◆</span>
         <div class="stat-body">
@@ -91,10 +67,8 @@
           <span class="stat-value mono gold-value" id="gold-value">—g</span>
         </div>
       </div>
+    </div>
 
-    </div><!-- /nav-stats -->
-
-    <!-- Modal trigger buttons -->
     <div class="nav-actions">
       <button class="nav-btn nav-btn-add" id="btn-add-task">＋ Add Task</button>
       <button class="nav-btn" data-modal="shop">🛒 Shop</button>
@@ -102,16 +76,13 @@
       <button class="nav-btn" data-modal="skills">⚡ Skills</button>
       <button class="nav-btn" data-modal="graphs">📈 Graphs</button>
     </div>
+  </nav>
 
-  </nav><!-- /navbar -->
 
-
-  <!-- ═══════════════════════════════════════════════════════════
-       MAIN LAYOUT — task list + chat, side by side
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════ MAIN LAYOUT ══════════════════════════════════════════ -->
   <main id="main">
 
-    <!-- ── LEFT: Task Panel ─────────────────────────────────── -->
+    <!-- ── LEFT: Task Panel ────────────────────────────────────────────── -->
     <section id="task-panel">
 
       <!-- Next Task Card -->
@@ -135,12 +106,12 @@
 
       <!-- Date Selector -->
       <div class="date-selector">
-        <button class="date-nav-btn" id="date-prev" aria-label="Previous day">‹</button>
+        <button class="date-nav-btn" id="date-prev">‹</button>
         <button class="date-display" id="date-display">
           <span id="date-label">Today</span>
           <span class="cal-icon" data-modal="calendar">📅</span>
         </button>
-        <button class="date-nav-btn" id="date-next" aria-label="Next day">›</button>
+        <button class="date-nav-btn" id="date-next">›</button>
       </div>
 
       <!-- Task List -->
@@ -150,66 +121,181 @@
           <span class="task-count mono" id="task-count">0</span>
         </div>
         <div id="task-list">
-          <!-- Populated by tasks.js -->
           <div class="task-skeleton"></div>
           <div class="task-skeleton"></div>
           <div class="task-skeleton"></div>
         </div>
       </div>
 
-    </section><!-- /task-panel -->
+    </section>
 
 
-    <!-- ── RIGHT: Chat Panel ────────────────────────────────── -->
+    <!-- ── RIGHT: Chat Panel ────────────────────────────────────────────── -->
     <section id="chat-panel">
       <div class="panel-card chat-card">
-
         <div class="chat-header">
           <span class="section-title">SYSTEM INTERFACE</span>
           <span class="chat-session mono">SESSION: WEB</span>
         </div>
-
         <div id="chat-messages">
-          <!-- Populated by chat.js -->
           <div class="chat-welcome">
             <div class="welcome-mark">◈</div>
             <div class="welcome-text">System online. How can I assist?</div>
           </div>
         </div>
-
         <div class="chat-input-area">
           <div class="typing-indicator" id="typing-indicator" hidden>
             <span></span><span></span><span></span>
           </div>
           <div class="input-row">
-            <textarea
-              id="chat-input"
-              placeholder="Enter command..."
-              rows="1"
-              autocomplete="off"
-              spellcheck="false"
-            ></textarea>
-            <button id="chat-send" aria-label="Send">
-              <span class="send-arrow">▶</span>
-            </button>
+            <textarea id="chat-input" placeholder="Enter command..." rows="1" autocomplete="off" spellcheck="false"></textarea>
+            <button id="chat-send" aria-label="Send"><span class="send-arrow">▶</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ═══════════════ TASK DETAIL DRAWER ═══════════════════════════════════ -->
+  <!-- Slides in from the right of the task panel. Shown/hidden via tasks.js. -->
+  <div id="task-drawer" hidden>
+    <div class="drawer-inner">
+
+      <div class="drawer-header">
+        <div class="drawer-header-left">
+          <span class="drawer-type-icon" id="drawer-type-icon">◈</span>
+          <span class="drawer-type-label mono" id="drawer-type-label">—</span>
+        </div>
+        <button class="drawer-close-btn" id="drawer-close" aria-label="Close drawer">✕</button>
+      </div>
+
+      <!-- ── READ VIEW ─────────────────────────────────────────────────── -->
+      <div id="drawer-read-view">
+        <div class="drawer-title" id="drawer-title">—</div>
+
+        <div class="drawer-badges" id="drawer-badges"></div>
+
+        <div class="drawer-description" id="drawer-description">—</div>
+
+        <div class="drawer-rewards">
+          <div class="drawer-reward-item">
+            <span class="drawer-reward-label">XP</span>
+            <span class="drawer-reward-value xp-color mono" id="drawer-xp">—</span>
+          </div>
+          <div class="drawer-reward-item">
+            <span class="drawer-reward-label">GOLD</span>
+            <span class="drawer-reward-value gold-color mono" id="drawer-gold">—</span>
+          </div>
+          <div class="drawer-reward-item">
+            <span class="drawer-reward-label">ENERGY</span>
+            <span class="drawer-reward-value energy-color mono" id="drawer-energy">—</span>
           </div>
         </div>
 
+        <div class="drawer-error" id="drawer-error" hidden></div>
+
+        <div class="drawer-actions" id="drawer-actions"></div>
       </div>
-    </section><!-- /chat-panel -->
 
-  </main><!-- /main -->
+      <!-- ── EDIT VIEW ─────────────────────────────────────────────────── -->
+      <div id="drawer-edit-view" hidden>
+        <div class="edit-section-title">EDIT TASK</div>
+
+        <!-- Title -->
+        <div class="edit-field">
+          <label class="edit-label">TITLE</label>
+          <input id="edit-title" class="edit-input" type="text" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <!-- Task Type -->
+        <div class="edit-field">
+          <label class="edit-label">TYPE</label>
+          <div class="edit-seg-group">
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="mandatory">⚔ mandatory</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="habit">🔄 habit</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="project">📋 project</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="bonus">⭐ bonus</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="anchor">⚓ anchor</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_task_type" data-value="routine">🌿 routine</button>
+          </div>
+        </div>
+
+        <!-- Priority -->
+        <div class="edit-field">
+          <label class="edit-label">PRIORITY</label>
+          <div class="edit-seg-group">
+            <button type="button" class="edit-seg-btn at-seg-p0" data-group="edit_priority" data-value="P0">P0</button>
+            <button type="button" class="edit-seg-btn at-seg-p1" data-group="edit_priority" data-value="P1">P1</button>
+            <button type="button" class="edit-seg-btn at-seg-p2" data-group="edit_priority" data-value="P2">P2</button>
+            <button type="button" class="edit-seg-btn at-seg-p3" data-group="edit_priority" data-value="P3">P3</button>
+          </div>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="edit-field">
+          <label class="edit-label">DIFFICULTY</label>
+          <div class="edit-seg-group">
+            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="low">low</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="medium">medium</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_difficulty" data-value="high">high</button>
+          </div>
+        </div>
+
+        <!-- Time Block -->
+        <div class="edit-field">
+          <label class="edit-label">TIME BLOCK <span class="edit-label-hint">optional</span></label>
+          <div class="edit-seg-group">
+            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="morning">morning</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="noon">noon</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="evening">evening</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="night">night</button>
+            <button type="button" class="edit-seg-btn" data-group="edit_time_block" data-value="midnight">midnight</button>
+          </div>
+        </div>
+
+        <!-- Scheduled At -->
+        <div class="edit-field">
+          <label class="edit-label">SPECIFIC TIME <span class="edit-label-hint">overrides time block</span></label>
+          <input id="edit-scheduled-at" class="edit-input" type="datetime-local" />
+        </div>
+
+        <!-- Recovery toggle -->
+        <div class="edit-field edit-field-row">
+          <label class="edit-label edit-toggle-label" for="edit-is-recovery">
+            <span>RECOVERY TASK</span>
+            <div class="at-toggle-wrap">
+              <input type="checkbox" id="edit-is-recovery" class="at-toggle-input" />
+              <span class="at-toggle-track"><span class="at-toggle-thumb"></span></span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Description -->
+        <div class="edit-field">
+          <label class="edit-label">DESCRIPTION <span class="edit-label-hint">optional</span></label>
+          <textarea id="edit-description" class="edit-input edit-textarea" rows="3" spellcheck="false"></textarea>
+        </div>
+
+        <div class="drawer-error" id="drawer-edit-error" hidden></div>
+
+        <div class="edit-actions">
+          <button type="button" class="edit-cancel-btn" id="edit-cancel-btn">Cancel</button>
+          <button type="button" class="edit-save-btn" id="edit-save-btn">Save</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 
-  <!-- ═══════════════════════════════════════════════════════════
-       MODAL OVERLAY
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════ MODAL OVERLAY ════════════════════════════════════════ -->
   <div id="modal-overlay" hidden>
     <div id="modal-container">
-
       <button id="modal-close" aria-label="Close">✕</button>
 
-      <!-- ── SHOP ───────────────────────────────────────────── -->
+      <!-- SHOP -->
       <div class="modal-pane" id="modal-shop" hidden>
         <div class="modal-header">
           <span class="modal-title">SHOP</span>
@@ -218,32 +304,22 @@
             <span class="mono" id="shop-gold-display">—g available</span>
           </span>
         </div>
-        <div class="shop-grid" id="shop-grid">
-          <!-- Populated by shop.js -->
-        </div>
+        <div class="shop-grid" id="shop-grid"></div>
       </div>
 
-      <!-- ── STATS ──────────────────────────────────────────── -->
+      <!-- STATS -->
       <div class="modal-pane" id="modal-stats" hidden>
-        <div class="modal-header">
-          <span class="modal-title">STATS</span>
-        </div>
-        <div class="stats-grid" id="stats-grid">
-          <!-- Populated by stats.js -->
-        </div>
+        <div class="modal-header"><span class="modal-title">STATS</span></div>
+        <div class="stats-grid" id="stats-grid"></div>
       </div>
 
-      <!-- ── SKILLS ─────────────────────────────────────────── -->
+      <!-- SKILLS -->
       <div class="modal-pane" id="modal-skills" hidden>
-        <div class="modal-header">
-          <span class="modal-title">SKILLS</span>
-        </div>
-        <div class="skills-list" id="skills-list">
-          <!-- Populated by skills.js -->
-        </div>
+        <div class="modal-header"><span class="modal-title">SKILLS</span></div>
+        <div class="skills-list" id="skills-list"></div>
       </div>
 
-      <!-- ── CALENDAR ───────────────────────────────────────── -->
+      <!-- CALENDAR -->
       <div class="modal-pane" id="modal-calendar" hidden>
         <div class="modal-header">
           <span class="modal-title">CALENDAR</span>
@@ -258,13 +334,11 @@
             <span>Mo</span><span>Tu</span><span>We</span>
             <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
           </div>
-          <div class="cal-days" id="cal-days">
-            <!-- Populated by calendar.js -->
-          </div>
+          <div class="cal-days" id="cal-days"></div>
         </div>
       </div>
 
-      <!-- ── GRAPHS ─────────────────────────────────────────── -->
+      <!-- GRAPHS -->
       <div class="modal-pane" id="modal-graphs" hidden>
         <div class="modal-header">
           <span class="modal-title">PROGRESSION</span>
@@ -273,35 +347,29 @@
             <button class="graph-tab" data-tab="activity">Activity</button>
           </div>
         </div>
-
         <div class="graphs-content" id="graphs-progression">
           <div class="chart-wrap"><canvas id="chart-xp"></canvas></div>
           <div class="chart-wrap"><canvas id="chart-gold"></canvas></div>
           <div class="chart-wrap"><canvas id="chart-energy"></canvas></div>
           <div class="chart-wrap"><canvas id="chart-streak"></canvas></div>
         </div>
-
         <div class="graphs-content" id="graphs-activity" hidden>
           <div class="chart-wrap"><canvas id="chart-tasks"></canvas></div>
           <div class="chart-wrap"><canvas id="chart-mandatory"></canvas></div>
         </div>
       </div>
+    </div>
+  </div>
 
-    </div><!-- /modal-container -->
-  </div><!-- /modal-overlay -->
 
-
-  <!-- ═══════════════════════════════════════════════════════════
-       ADD TASK OVERLAY
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════ ADD TASK OVERLAY ════════════════════════════════════ -->
   <div id="addtask-overlay" hidden>
     <div id="addtask-panel">
-
       <button id="addtask-close" aria-label="Close">✕</button>
 
       <div class="at-header">
         <span class="at-title">NEW TASK</span>
-        <span class="at-subtitle">Fields marked AUTO will be inferred by the model</span>
+        <span class="at-subtitle">Title + type required. All other fields optional.</span>
       </div>
 
       <form id="addtask-form" onsubmit="return false">
@@ -325,9 +393,20 @@
           </div>
         </div>
 
+        <!-- Recurrence — shown only when routine is selected -->
+        <div class="at-field" id="addtask-recurrence-field" hidden>
+          <label class="at-label">RECURRENCE <span class="at-required">*</span></label>
+          <div class="at-seg-group">
+            <button type="button" class="at-seg-btn active" data-group="recurrence" data-value="daily" data-default>daily</button>
+            <button type="button" class="at-seg-btn" data-group="recurrence" data-value="weekdays">weekdays</button>
+            <button type="button" class="at-seg-btn" data-group="recurrence" data-value="weekends">weekends</button>
+            <button type="button" class="at-seg-btn" data-group="recurrence" data-value="weekly">weekly</button>
+          </div>
+        </div>
+
         <!-- Priority -->
         <div class="at-field">
-          <label class="at-label">PRIORITY <span class="at-autofill-hint">auto if unset</span></label>
+          <label class="at-label">PRIORITY</label>
           <div class="at-seg-group">
             <button type="button" class="at-seg-btn at-seg-p0" data-group="priority" data-value="P0">P0 critical</button>
             <button type="button" class="at-seg-btn at-seg-p1" data-group="priority" data-value="P1">P1 high</button>
@@ -338,7 +417,7 @@
 
         <!-- Difficulty -->
         <div class="at-field">
-          <label class="at-label">DIFFICULTY <span class="at-autofill-hint">auto if unset</span></label>
+          <label class="at-label">DIFFICULTY</label>
           <div class="at-seg-group">
             <button type="button" class="at-seg-btn" data-group="difficulty" data-value="low">low</button>
             <button type="button" class="at-seg-btn active" data-group="difficulty" data-value="medium" data-default>medium</button>
@@ -346,7 +425,7 @@
           </div>
         </div>
 
-        <!-- Time Block (no schedule) -->
+        <!-- Time Block -->
         <div class="at-field" id="addtask-timeblock-field">
           <label class="at-label">TIME BLOCK <span class="at-autofill-hint">optional</span></label>
           <div class="at-seg-group">
@@ -381,10 +460,8 @@
           </div>
         </div>
 
-        <!-- Error -->
         <div id="addtask-error" class="at-error" hidden></div>
 
-        <!-- Actions -->
         <div class="at-actions">
           <button type="button" class="at-cancel-btn" id="addtask-cancel-btn">Cancel</button>
           <button type="button" class="at-submit-btn" id="addtask-submit">Add Task</button>
@@ -394,9 +471,8 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       SCRIPTS — load order matters
-  ════════════════════════════════════════════════════════════════ -->
+
+  <!-- ═══════════════ SCRIPTS ══════════════════════════════════════════════ -->
   <script src="js/ui.js"></script>
   <script src="js/api.js"></script>
   <script src="js/modals.js"></script>

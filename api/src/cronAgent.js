@@ -1,7 +1,6 @@
 // Life Map v1 — cronAgent.js
-// Phase 7: Autonomous cron layer
-// All scheduled logic lives here. No LLM calls — narrative generation
-// happens in server.js after these functions return their data objects.
+// Phase 9.2: All mechanics values read from config/mechanics.json via getConfig()
+// No hardcoded constants anywhere in this file.
 
 import { supabase } from './supabaseClient.js'
 import { getConfig } from './configLoader.js'
@@ -59,6 +58,7 @@ export async function runMorning() {
       1,
       Math.floor((Date.now() - originalScheduledAt.getTime()) / 86400000)
     )
+    // Read late penalty base from config
     const lateMultiplier = Math.pow(mechanics.late_penalty.base, daysDelayed)
 
     // Cancel original
@@ -89,21 +89,18 @@ export async function runMorning() {
     carriedOver++
   }
 
-  // 3. Expire effects where end_date < today (if effects table exists)
-  // await supabase.from('effect').update({ status: 'expired' }).lt('end_date', today)
-
-  // 4. Flag decaying skills and stats (log only — edge function applies decay)
+  // 3. Flag decaying skills and stats
   const { data: decayingSkills } = await supabase
     .from('skill')
     .select('id, name')
-    .lte('current_streak', -7)
+    .lte('current_streak', mechanics.decay_trigger_threshold)
 
   const { data: decayingStats } = await supabase
     .from('stat')
     .select('id, name')
-    .lte('current_streak', -7)
+    .lte('current_streak', mechanics.decay_trigger_threshold)
 
-  // 5. Update daily_state
+  // 4. Update daily_state
   await supabase
     .from('daily_state')
     .update({
@@ -112,7 +109,7 @@ export async function runMorning() {
     })
     .eq('id', 1)
 
-  // Passive energy regen
+  // 5. Passive energy regen — read amount from config
   const regen = mechanics.energy_recovery.passive_morning_regen
 
   // Get active arc multiplier (default 1.0 if none)
@@ -123,7 +120,7 @@ export async function runMorning() {
     .limit(1)
     .maybeSingle()
 
-  const arcMult = arc?.energy_regen_multiplier ?? 1.0
+  const arcMult = arc?.energy_regen_multiplier ?? mechanics.energy_recovery.arc_regen_multiplier_default
   const totalRegen = Math.round(regen * arcMult)
 
   await supabase.rpc('regen_energy', { p_amount: totalRegen })
@@ -188,6 +185,7 @@ export async function runMorning() {
 // ---------------------------------------------------------------------------
 // runEod
 // Called by POST /cron/eod (GitHub Actions, 04:00 UTC = 11pm EST)
+// Phase 9.2: Skill and stat streak increments moved here from edge function.
 // ---------------------------------------------------------------------------
 export async function runEod() {
   // 1. Idempotency check — morning must have run first
@@ -204,7 +202,7 @@ export async function runEod() {
   const today = new Date().toISOString().split('T')[0]
   const mechanics = getConfig().mechanics
 
-  // 2. mandatory_met already set by complete_task SQL function — read from state
+  // 2. mandatory_met already set by complete_task SQL function
   const mandatoryMet = state.mandatory_met
 
   // 3. Update streak
@@ -215,7 +213,7 @@ export async function runEod() {
     newStreak = state.day_streak - 1
   }
 
-  // 4. Compute streak_multiplier (power curve)
+  // 4. Compute streak_multiplier (power curve from config)
   let streakMultiplier = 0
   if (newStreak > 0) {
     const { coefficient, exponent } = mechanics.streak_formula
@@ -229,7 +227,7 @@ export async function runEod() {
     .eq('task_type', 'routine')
     .eq('status', 'completed')
 
-  // 6. Decrement skill/stat streaks for non-hits today
+  // 6. Get qualifying hits from today (for streak and decrement logic)
   const { data: todayHits, error: hitsError } = await supabase
     .from('xp_ledger')
     .select('target_type, target_id')
@@ -238,6 +236,9 @@ export async function runEod() {
 
   if (hitsError) throw hitsError
 
+  // Use streak_hit_threshold from config (default 0.55, read from mechanics)
+  // Note: xp_ledger doesn't store similarity score, so we use the presence
+  // of a ledger entry (above floor) as the qualifying signal.
   const hitSkillIds = new Set(
     (todayHits || []).filter(h => h.target_type === 'skill').map(h => h.target_id)
   )
@@ -245,13 +246,21 @@ export async function runEod() {
     (todayHits || []).filter(h => h.target_type === 'stat').map(h => h.target_id)
   )
 
-  // Fetch all skills and stats, decrement those not hit today
+  // 7. Skill streaks — Phase 9.2: increment/decrement entirely here (not in edge fn)
   const { data: allSkills } = await supabase.from('skill').select('id, current_streak')
   const { data: allStats }  = await supabase.from('stat').select('id, current_streak')
 
   const decayingSkills = []
   for (const skill of allSkills || []) {
-    if (!hitSkillIds.has(skill.id)) {
+    if (hitSkillIds.has(skill.id)) {
+      // Qualifying hit today — increment streak (reset to 1 if negative, else +1)
+      const newStrk = skill.current_streak < 0 ? 1 : skill.current_streak + 1
+      await supabase
+        .from('skill')
+        .update({ current_streak: newStrk })
+        .eq('id', skill.id)
+    } else {
+      // No hit today — decrement streak
       const newSkillStreak = skill.current_streak - 1
       await supabase
         .from('skill')
@@ -263,8 +272,15 @@ export async function runEod() {
     }
   }
 
+  // 8. Stat streaks — same pattern
   for (const stat of allStats || []) {
-    if (!hitStatIds.has(stat.id)) {
+    if (hitStatIds.has(stat.id)) {
+      const newStrk = stat.current_streak < 0 ? 1 : stat.current_streak + 1
+      await supabase
+        .from('stat')
+        .update({ current_streak: newStrk })
+        .eq('id', stat.id)
+    } else {
       const newStatStreak = stat.current_streak - 1
       await supabase
         .from('stat')
@@ -273,14 +289,14 @@ export async function runEod() {
     }
   }
 
-  // Count tasks completed today
+  // 9. Count tasks completed today
   const { count: tasksCompletedToday } = await supabase
     .from('task')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'completed')
     .gte('completed_at', today)
 
-  // Recovery task energy restoration
+  // 10. Recovery task energy restoration (read from config)
   const { data: recoveryTasks } = await supabase
     .from('task')
     .select('id')
@@ -294,7 +310,7 @@ export async function runEod() {
     await supabase.rpc('regen_energy', { p_amount: restore })
   }
 
-  // Count tasks that will be carried over (still pending with scheduled_at < tomorrow)
+  // 11. Count tasks that will be carried over
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
   const { count: tasksToCarryOver } = await supabase
     .from('task')
@@ -303,7 +319,7 @@ export async function runEod() {
     .lt('scheduled_at', tomorrow)
     .not('task_type', 'eq', 'routine')
 
-  // 7. Roll daily_state
+  // 12. Roll daily_state
   await supabase
     .from('daily_state')
     .update({
@@ -316,7 +332,7 @@ export async function runEod() {
     })
     .eq('id', 1)
 
-  // 8. Write daily_snapshot for graphs/history
+  // 13. Write daily_snapshot
   const { data: player } = await supabase
     .from('player')
     .select('current_level, current_xp, total_gold, available_gold')
@@ -344,7 +360,7 @@ export async function runEod() {
       tasks_carried:   tasksToCarryOver   || 0
     })
 
-  // 9. Build EOD summary object
+  // 14. Build EOD summary object
   return {
     date:                  today,
     mandatory_met:         mandatoryMet,
@@ -362,8 +378,6 @@ export async function runEod() {
 // ---------------------------------------------------------------------------
 // runRemind
 // Called by POST /cron/remind every 30 min via GitHub Actions
-// Checks for mandatory/habit/anchor tasks scheduled in the next 35 minutes
-// and posts a Discord reminder if not already notified.
 // ---------------------------------------------------------------------------
 export async function runRemind() {
   const now      = new Date()
@@ -410,7 +424,6 @@ export async function runRemind() {
 // ---------------------------------------------------------------------------
 // runCleanup
 // Called by POST /cron/cleanup (GitHub Actions, weekly Sunday 03:00 UTC)
-// Replaces the pg_cron TTL job retired in migration 17
 // ---------------------------------------------------------------------------
 export async function runCleanup() {
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()

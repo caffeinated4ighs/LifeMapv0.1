@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // app.js — application boot
 // Loaded last. Calls init functions from every other module.
-// Owns: navbar hydration, state refresh, global event wiring.
+// Owns: navbar hydration, state refresh, global event wiring, config loading.
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── Rank titles (mirrors mechanics.json) ─────────────────────────────────────
@@ -53,7 +53,7 @@ function hydrateNavbar(state) {
   if (streakEl) {
     streakEl.textContent = formatStreak(streak.day_streak)
     streakEl.className   = `stat-value mono ${streakClass(streak.day_streak)}`
-      .replace('decaying', 'negative')  // use same color
+      .replace('decaying', 'negative')
   }
 
   // Level + XP bar
@@ -69,6 +69,11 @@ function hydrateNavbar(state) {
 
   // Gold
   setText('gold-value', formatGold(available_gold))
+
+  // Day-off badge
+  if (typeof updateDayOffBadge === 'function') {
+    updateDayOffBadge(state.day_off_granted)
+  }
 }
 
 // ── Refresh navbar (called after any state-mutating action) ──────────────────
@@ -92,7 +97,6 @@ function initLevelDropdown() {
     toggle(dropdown, !isOpen)
   })
 
-  // Close when clicking outside
   document.addEventListener('click', e => {
     if (!trigger.contains(e.target)) {
       trigger.setAttribute('aria-expanded', 'false')
@@ -107,12 +111,21 @@ function startRefreshCycle() {
     try {
       const state = await apiGetState()
       hydrateNavbar(state)
-    } catch (_) { /* silent — don't interrupt the user */ }
+    } catch (_) { /* silent */ }
   }, 60_000)
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
+  // Load config first — ui.js display functions depend on window.LIFEMAP_CONFIG
+  try {
+    const config = await fetchConfig()
+    window.LIFEMAP_CONFIG = config
+  } catch (err) {
+    console.error('Config load failed, using ui.js fallbacks:', err)
+    window.LIFEMAP_CONFIG = null
+  }
+
   // Init all modules
   initModals()
   initTasks()

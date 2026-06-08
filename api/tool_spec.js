@@ -1,4 +1,4 @@
-// Full specs — all tools passed to Pass 1
+// Full specs — all tools passed to the agentic loop
 export const toolSpecMap = {
   get_tasks: {
     name: 'get_tasks',
@@ -36,6 +36,27 @@ export const toolSpecMap = {
         }
       },
       required: ['title', 'task_type']
+    }
+  },
+
+  edit_task: {
+    name: 'edit_task',
+    description: 'Edit an existing task. Always call get_tasks first to get the task id. Provide only the fields you want to change — all fields are optional. Cannot edit completed or cancelled tasks.',
+    parameters: {
+      type: 'object',
+      properties: {
+        task_id:      { type: 'number', description: 'ID of the task to edit' },
+        title:        { type: 'string', description: 'New title' },
+        task_type:    { type: 'string', enum: ['mandatory','habit','project','bonus','anchor','routine'] },
+        priority:     { type: 'string', enum: ['P0','P1','P2','P3'] },
+        difficulty:   { type: 'string', enum: ['low','medium','high'] },
+        scheduled_at: { type: 'string', description: 'New ISO timestamp' },
+        time_block:   { type: 'string', enum: ['morning','noon','evening','night','midnight'] },
+        description:  { type: 'string', description: 'Updated description' },
+        is_recovery:  { type: 'boolean', description: 'Whether this task restores energy' },
+        arc_id:       { type: 'number', description: 'Arc ID to link or relink this task to' }
+      },
+      required: ['task_id']
     }
   },
 
@@ -151,7 +172,7 @@ export const toolSpecMap = {
         skill_id: {
           type: 'number',
           description:
-            'The id of the skill to rename. Get this from get_player_state or by asking the user which skill they mean.'
+            'The id of the skill to rename. Get this from get_skills.'
         },
         new_name: {
           type: 'string',

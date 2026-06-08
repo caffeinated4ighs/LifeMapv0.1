@@ -11,6 +11,8 @@
   "gold_base": { "P0": 15, "P1": 10, "P2": 6, "P3": 3 },
   "gold_difficulty_offset": { "low": -2, "medium": 0, "high": 5 },
   "gold_floor": 1,
+  "skill_match_floor": 0.65,
+  "streak_hit_threshold": 0.55,
   "xp_level_formula": {
     "governs": "player_level_up",
     "type": "compound",

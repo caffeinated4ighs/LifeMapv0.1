@@ -48,7 +48,14 @@ export async function getTasksToday() {
   if (currentHour >= 19) passedBlocks.push('evening')
   if (currentHour >= 22) passedBlocks.push('night')
 
+  // Filter out completed tasks from previous days (only show today's)
+  // A completed task from before today should NOT appear in today's view
+  const todayStart = `${today}T00:00:00`
   return merged.filter(task => {
+    // Always exclude tasks completed before today
+    if (task.status === 'completed' && task.completed_at && task.completed_at < todayStart) {
+      return false
+    }
     if (task.task_type !== 'routine') return true
     if (!task.time_block) return true
     return !passedBlocks.includes(task.time_block)
@@ -64,7 +71,6 @@ export async function getNextTask() {
     .from('active_tasks')
     .select('*')
     .eq('status', 'pending')
-    // .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null`)
     .or(`scheduled_at.gte.${today},scheduled_at.lt.${tomorrow},time_block.not.is.null,and(scheduled_at.is.null,time_block.is.null)`)
     .order('scheduled_at', { ascending: true, nullsFirst: false })
     .limit(1)
@@ -220,6 +226,47 @@ export async function removeTask(taskId) {
     throw updateError;
   }
   return { id: taskId, cancelled: true };
+}
+
+// ---------------------------------------------------------------------------
+// editTask — Phase 9.2 (B3)
+// Updates any combination of editable fields on a pending task.
+// ---------------------------------------------------------------------------
+export async function editTask(taskId, updates) {
+  const ALLOWED_FIELDS = [
+    'title', 'task_type', 'priority', 'difficulty',
+    'scheduled_at', 'time_block', 'description', 'is_recovery', 'arc_id'
+  ]
+
+  const fields = Object.fromEntries(
+    Object.entries(updates).filter(([k]) => ALLOWED_FIELDS.includes(k))
+  )
+
+  if (Object.keys(fields).length === 0) {
+    throw new Error('No valid fields to update. Allowed: ' + ALLOWED_FIELDS.join(', '))
+  }
+
+  // Verify task exists and is editable
+  const { data: existing, error: fetchError } = await supabase
+    .from('task')
+    .select('id, status')
+    .eq('id', taskId)
+    .maybeSingle()
+
+  if (fetchError) throw fetchError
+  if (!existing) throw new Error(`Task not found: ${taskId}`)
+  if (existing.status === 'completed') throw new Error(`Cannot edit a completed task`)
+  if (existing.status === 'cancelled') throw new Error(`Cannot edit a cancelled task`)
+
+  const { data, error } = await supabase
+    .from('task')
+    .update(fields)
+    .eq('id', taskId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
 }
 
 
@@ -435,8 +482,6 @@ export async function getStats() {
 }
 
 // Extended shop query — includes today's purchase counts per item.
-// Used by GET /shop (frontend). The existing getShopItems() is kept for
-// internal LLM tool use (get_shop_items tool) and is not replaced.
 export async function getShopWithCounts() {
   const today = new Date().toISOString().split('T')[0]
 
@@ -478,12 +523,9 @@ export async function getSnapshots() {
 }
 
 // Returns per-day task summary for a given month (YYYY-MM).
-// Each entry: { total, completed, carried, missed }
-// Routine tasks excluded from dots per spec.
 export async function getCalendar(month) {
   const [year, mon] = month.split('-').map(Number)
   const start = `${month}-01`
-  // Last day of the month
   const end = new Date(year, mon, 1).toISOString().split('T')[0]
 
   const { data, error } = await supabase
@@ -500,7 +542,6 @@ export async function getCalendar(month) {
 
   const days = {}
   for (const task of data || []) {
-    // Use whichever date is most meaningful for display
     const dateStr = task.completed_at
       ? task.completed_at.split('T')[0]
       : task.scheduled_at
@@ -542,7 +583,6 @@ export async function renameSkill({
   new_description
 }) {
   console.log('renameSkill called:', { skill_id, new_name, new_description })
-  // Build update payload — only include description if provided
   const updates = {
     name: new_name
   };
@@ -569,10 +609,6 @@ export async function renameSkill({
       `Failed to rename skill: ${error.message}`
     );
   }
-
-  // The DB webhook fires on this UPDATE and triggers
-  // on-skill-rename edge function which re-embeds
-  // the skill asynchronously.
 
   return {
     success: true,

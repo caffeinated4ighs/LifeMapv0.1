@@ -5,7 +5,7 @@ export function computeTaskRewards(task) {
   const mechanics = config.mechanics;
 
   if (task.task_type === 'routine') {
-    return { xp: 4, gold: 2 }
+    return { xp: mechanics.xp_base.routine, gold: mechanics.gold_base_routine }
   }
 
   const effectiveType = task.task_type
@@ -55,9 +55,9 @@ export function computeNewLevel(currentLevel, currentXp, xpGained) {
   let xpToNext = computeXpToNext(level, 'xp_level_formula')
 
   while (xp >= xpToNext) {
-    xp -= xpToNext;           // carry over overflow
-    level += 1;               // level up
-    xpToNext = computeXpToNext(level, 'xp_level_formula');  // recompute for new level
+    xp -= xpToNext;
+    level += 1;
+    xpToNext = computeXpToNext(level, 'xp_level_formula');
   }
 
   return { 
@@ -87,4 +87,3 @@ export function deriveCrossoverLabel(similarityScore) {
 
   return null;
 }
-

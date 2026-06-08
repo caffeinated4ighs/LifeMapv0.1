@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // ui.js — shared utilities, formatters, and DOM helpers
 // Loaded first. No dependencies on other JS modules.
+// Phase 9.2: Display reward computation reads from window.LIFEMAP_CONFIG
+// (populated at boot by app.js via GET /config). Hardcoded values are
+// fallbacks only — they match mechanics.json exactly.
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── Type icons (from theme spec) ────────────────────────────────────────────
@@ -11,6 +14,26 @@ const TYPE_ICONS = {
   bonus:     '⭐',
   anchor:    '⚓',
   routine:   '🌿',
+}
+
+// ── Config accessor ──────────────────────────────────────────────────────────
+// Returns the mechanics config from window.LIFEMAP_CONFIG if available,
+// otherwise returns a safe fallback object that mirrors mechanics.json.
+function getMechanics() {
+  if (window.LIFEMAP_CONFIG?.mechanics) {
+    return window.LIFEMAP_CONFIG.mechanics
+  }
+  // Fallback — must stay in sync with config/mechanics.json
+  return {
+    xp_base:                 { mandatory: 10, habit: 12, project: 15, bonus: 6, anchor: 10, routine: 4 },
+    gold_base_routine:       2,
+    gold_base:               { P0: 15, P1: 10, P2: 6, P3: 3 },
+    gold_difficulty_offset:  { low: -2, medium: 0, high: 5 },
+    gold_floor:              1,
+    energy_drain_base:       { mandatory: 8, habit: 6, project: 10, bonus: 3, anchor: 10, routine: 2 },
+    energy_drain_difficulty_offset: { low: -2, medium: 0, high: 4 },
+    energy_drain_floor:      1,
+  }
 }
 
 // ── Formatters ───────────────────────────────────────────────────────────────
@@ -34,7 +57,6 @@ function formatStreak(n) {
 }
 
 function formatDate(dateStr) {
-  // dateStr: 'YYYY-MM-DD'
   const d = new Date(dateStr + 'T00:00:00')
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -60,19 +82,29 @@ function todayStr() {
   return new Date().toISOString().split('T')[0]
 }
 
-// ── XP reward computation (mirrors backend logicAgent, frontend display only) ──
-// Priority base gold: P0=15, P1=10, P2=6, P3=3
-// Difficulty offset:  low=-2, medium=0, high=+5 | Floor: 1g
-// XP base: mandatory=10, habit=12, project=15, bonus=6, anchor=15, routine=4
-const XP_BASE = { mandatory: 10, habit: 12, project: 15, bonus: 6, anchor: 10, routine: 4 }
-const GOLD_BASE = { P0: 15, P1: 10, P2: 6, P3: 3 }
-const DIFF_OFFSET = { low: -2, medium: 0, high: 5 }
-
+// ── XP reward computation — reads from window.LIFEMAP_CONFIG ─────────────────
 function computeDisplayRewards(task) {
-  if (task.task_type === 'routine') return { xp: 4, gold: 2 }
-  const xp = XP_BASE[task.task_type] ?? 0
-  const gold = Math.max(1, (GOLD_BASE[task.priority] ?? 3) + (DIFF_OFFSET[task.difficulty] ?? 0))
+  const m = getMechanics()
+
+  if (task.task_type === 'routine') {
+    return { xp: m.xp_base.routine, gold: m.gold_base_routine }
+  }
+
+  const xp   = m.xp_base[task.task_type] ?? 0
+  const gold = Math.max(
+    m.gold_floor,
+    (m.gold_base[task.priority] ?? 3) + (m.gold_difficulty_offset[task.difficulty] ?? 0)
+  )
   return { xp, gold }
+}
+
+// ── Energy cost display — reads from window.LIFEMAP_CONFIG ───────────────────
+function computeDisplayEnergyCost(task) {
+  const m = getMechanics()
+  if (task.task_type === 'routine') return m.energy_drain_floor
+  const base   = m.energy_drain_base[task.task_type] ?? 5
+  const offset = m.energy_drain_difficulty_offset[task.difficulty] ?? 0
+  return Math.max(m.energy_drain_floor, base + offset)
 }
 
 // ── Streak class helper ──────────────────────────────────────────────────────
@@ -94,9 +126,6 @@ function energyClass(threshold_label) {
 }
 
 // ── Day-off badge (navbar only) ──────────────────────────────────────────────
-// Call with state.day_off_granted from /state endpoint.
-// Inserts/removes a <span class="day-off-badge">DAY OFF</span> next to
-// the energy display. Safe to call on every state refresh.
 function updateDayOffBadge(dayOffGranted) {
   const BADGE_ID = 'day-off-badge'
   const energyEl = document.querySelector('.navbar-energy, #navbar-energy, [data-energy]')
