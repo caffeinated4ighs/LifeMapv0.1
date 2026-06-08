@@ -1,24 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   ADDITIONS — append to the bottom of app.css
-   Covers: task drawer, drawer edit form, day-off shop highlight
+   DRAWER + EDIT + SHOP ADDITIONS
+   These MUST be in app.css (or a file linked in index.html).
+   Previously shipped as app_additions.css which was never linked — now merged.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── TASK PANEL — needs relative positioning for drawer overlay ─────────── */
-
-#task-panel {
-  position: relative;  /* drawer uses absolute positioning within this */
-}
+/* ── TASK PANEL — anchor for absolute drawer ─────────────────────────────── */
+#task-panel { position: relative; }
 
 /* ── TASK DRAWER ─────────────────────────────────────────────────────────── */
-/* Overlays the task panel as an absolute child — no fixed positioning.       */
-/* Move #task-drawer to be inside <section id="task-panel"> in index.html.   */
-
 #task-drawer {
   position: absolute;
-  inset: 0;           /* covers the full task panel area */
+  inset: 0;
   z-index: 50;
+  /* Solid background — must fully cover the panel beneath */
+  background: #0d1117;
   background: var(--surface);
+  border: 1px solid rgba(99, 179, 237, 0.22);
   border: 1px solid var(--glass-border-hi);
+  border-radius: 10px;
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
@@ -38,14 +37,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 100%;
+  flex: 1;
 }
 
+/* Header row */
 .drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
 }
 
 .drawer-header-left {
@@ -54,53 +53,69 @@
   gap: 7px;
 }
 
-.drawer-type-icon  { font-size: 1rem; }
+.drawer-type-icon { font-size: 1rem; }
+
 .drawer-type-label {
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.15em;
+  color: #4a5568;
   color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .drawer-close-btn {
   width: 26px;
   height: 26px;
   border-radius: 50%;
+  background: #111827;
   background: var(--surface-2);
+  border: 1px solid rgba(99, 179, 237, 0.10);
   border: 1px solid var(--glass-border);
+  color: #4a5568;
   color: var(--text-muted);
   font-size: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: all 150ms ease;
+  flex-shrink: 0;
 }
-.drawer-close-btn:hover { border-color: var(--danger); color: var(--danger); }
+.drawer-close-btn:hover { border-color: #e53e3e; color: #e53e3e; }
 
+/* Title */
 .drawer-title {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.35;
+  color: #e2e8f0;
   color: var(--text);
 }
 
+/* Badges row */
 .drawer-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
 }
 
+/* Description block */
 .drawer-description {
   font-size: 0.78rem;
+  color: #4a5568;
   color: var(--text-muted);
   line-height: 1.55;
   padding: 10px 12px;
+  background: #05070f;
   background: var(--bg);
+  border: 1px solid rgba(99, 179, 237, 0.10);
   border: 1px solid var(--glass-border);
+  border-radius: 6px;
   border-radius: var(--radius-sm);
 }
 
+/* Rewards row — three cards side by side */
 .drawer-rewards {
   display: flex;
   gap: 6px;
@@ -112,8 +127,11 @@
   flex-direction: column;
   gap: 3px;
   padding: 8px 10px;
+  background: #05070f;
   background: var(--bg);
+  border: 1px solid rgba(99, 179, 237, 0.10);
   border: 1px solid var(--glass-border);
+  border-radius: 6px;
   border-radius: var(--radius-sm);
 }
 
@@ -121,154 +139,161 @@
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.12em;
+  color: #4a5568;
   color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .drawer-reward-value { font-size: 0.8rem; font-weight: 600; }
-.xp-color     { color: var(--xp-color); }
-.gold-color   { color: var(--gold); }
-.energy-color { color: var(--accent); }
+.xp-color     { color: #4f8ef7; }
+.gold-color   { color: #f6c90e; }
+.energy-color { color: #4f8ef7; }
 
+/* Error block */
 .drawer-error {
   font-size: 0.72rem;
-  color: var(--danger);
+  color: #e53e3e;
   padding: 7px 10px;
-  background: var(--danger-dim);
-  border: 1px solid rgba(229,62,62,0.25);
-  border-radius: var(--radius-sm);
+  background: rgba(229, 62, 62, 0.08);
+  border: 1px solid rgba(229, 62, 62, 0.25);
+  border-radius: 6px;
 }
 
+/* Actions stack */
 .drawer-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 12px;
 }
 
 .drawer-complete-btn {
+  width: 100%;
+  font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   padding: 10px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
+  background: #4f8ef7;
   background: var(--accent);
   color: #fff;
   border: none;
   cursor: pointer;
-  transition: opacity var(--t-fast);
-  width: 100%;
+  transition: opacity 150ms ease;
 }
 .drawer-complete-btn:hover:not(:disabled) { opacity: 0.85; }
 .drawer-complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .drawer-edit-btn {
+  width: 100%;
+  font-family: var(--font-ui);
   font-size: 0.7rem;
   font-weight: 600;
   padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border-hi);
-  color: var(--text-muted);
+  border-radius: 6px;
+  border: 1px solid rgba(99, 179, 237, 0.22);
+  color: #4a5568;
   background: transparent;
   cursor: pointer;
-  transition: all var(--t-fast);
-  width: 100%;
+  transition: all 150ms ease;
 }
-.drawer-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.drawer-edit-btn:hover {
+  border-color: #4f8ef7;
+  color: #4f8ef7;
+  background: rgba(79, 142, 247, 0.12);
+}
 
 .drawer-cancel-link {
+  width: 100%;
+  font-family: var(--font-ui);
   font-size: 0.65rem;
+  color: #2d3748;
   color: var(--text-dim);
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: center;
   padding: 4px;
-  transition: color var(--t-fast);
-  width: 100%;
+  transition: color 150ms ease;
 }
-.drawer-cancel-link:hover { color: var(--danger); }
+.drawer-cancel-link:hover { color: #e53e3e; }
 
 .drawer-completed-label {
   font-size: 0.72rem;
   font-weight: 600;
+  color: #48bb78;
   color: var(--success);
   text-align: center;
   padding: 8px;
   letter-spacing: 0.05em;
 }
 
-/* ── DRAWER EDIT FORM ────────────────────────────────────────────────────── */
+/* ── EDIT FORM (inside drawer) ───────────────────────────────────────────── */
 
 .edit-section-title {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.2em;
-  color: var(--text-muted);
-  margin-bottom: 2px;
+  color: #4a5568;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
 .edit-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
-
 .edit-field-row { flex-direction: row; align-items: center; }
 
 .edit-label {
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--text-muted);
+  color: #4a5568;
   text-transform: uppercase;
 }
-
 .edit-label-hint {
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: none;
-  color: var(--text-dim);
+  color: #2d3748;
   font-size: 0.55rem;
+  margin-left: 4px;
 }
-
 .edit-toggle-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   cursor: pointer;
-  margin-bottom: 0;
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--text-muted);
+  color: #4a5568;
   text-transform: uppercase;
 }
 
 .edit-input {
-  background: var(--bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
+  width: 100%;
+  background: #05070f;
+  border: 1px solid rgba(99, 179, 237, 0.10);
+  border-radius: 6px;
   padding: 8px 10px;
   font-size: 0.82rem;
   font-family: var(--font-ui);
-  color: var(--text);
+  color: #e2e8f0;
   outline: none;
-  transition: border-color var(--t-fast);
-  width: 100%;
+  transition: border-color 150ms ease;
 }
-.edit-input:focus { border-color: var(--accent); }
-.edit-input::placeholder { color: var(--text-dim); }
+.edit-input:focus { border-color: #4f8ef7; }
+.edit-input::placeholder { color: #2d3748; }
 input[type="datetime-local"].edit-input { color-scheme: dark; }
-
 .edit-textarea { resize: none; min-height: 60px; }
 
-.edit-seg-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+.edit-seg-group { display: flex; flex-wrap: wrap; gap: 4px; }
 
 .edit-seg-btn {
   font-family: var(--font-ui);
@@ -276,63 +301,61 @@ input[type="datetime-local"].edit-input { color-scheme: dark; }
   font-weight: 600;
   letter-spacing: 0.07em;
   padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border);
-  color: var(--text-muted);
-  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid rgba(99, 179, 237, 0.10);
+  color: #4a5568;
+  background: #05070f;
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: all 150ms ease;
   white-space: nowrap;
 }
-.edit-seg-btn:hover { border-color: var(--glass-border-hi); color: var(--text); }
-.edit-seg-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-.at-seg-p0.active { background: rgba(229,62,62,0.12); border-color: var(--danger); color: var(--danger); }
-.at-seg-p1.active { background: rgba(237,137,54,0.12); border-color: var(--warning); color: var(--warning); }
-.at-seg-p3.active { background: var(--surface-2); border-color: var(--text-dim); color: var(--text-muted); }
+.edit-seg-btn:hover { border-color: rgba(99, 179, 237, 0.22); color: #e2e8f0; }
+.edit-seg-btn.active { background: rgba(79,142,247,0.12); border-color: #4f8ef7; color: #4f8ef7; }
 
-.edit-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
+.edit-actions { display: flex; gap: 8px; margin-top: 8px; }
 
 .edit-cancel-btn {
   flex: 1;
+  font-family: var(--font-ui);
   font-size: 0.7rem;
   font-weight: 600;
   padding: 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border);
-  color: var(--text-muted);
+  border-radius: 6px;
+  border: 1px solid rgba(99, 179, 237, 0.10);
+  color: #4a5568;
   background: transparent;
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: all 150ms ease;
 }
-.edit-cancel-btn:hover { border-color: var(--glass-border-hi); color: var(--text); }
+.edit-cancel-btn:hover { border-color: rgba(99, 179, 237, 0.22); color: #e2e8f0; }
 
 .edit-save-btn {
   flex: 2;
+  font-family: var(--font-ui);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   padding: 8px;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   border: none;
-  background: var(--accent);
+  background: #4f8ef7;
   color: #fff;
   cursor: pointer;
-  transition: opacity var(--t-fast);
+  transition: opacity 150ms ease;
 }
 .edit-save-btn:hover:not(:disabled) { opacity: 0.85; }
 .edit-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── DAY OFF — shop item green highlight ─────────────────────────────────── */
+/* ── META TAG VARIANTS used by drawer badges ─────────────────────────────── */
+.recovery-tag { border-color: rgba(72,187,120,0.3); color: #48bb78; }
+.late-tag     { border-color: rgba(237,137,54,0.3);  color: #ed8936; }
 
+/* ── DAY OFF — shop item green highlight ─────────────────────────────────── */
 .shop-item.day-off-active {
   border-color: rgba(72, 187, 120, 0.45);
   background: rgba(72, 187, 120, 0.06);
 }
-.shop-item.day-off-active .shop-item-name { color: var(--success); }
+.shop-item.day-off-active .shop-item-name { color: #48bb78; }
 
 .day-off-status-badge {
   display: inline-flex;
@@ -340,23 +363,61 @@ input[type="datetime-local"].edit-input { color-scheme: dark; }
   gap: 5px;
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--success);
+  letter-spacing: 0.08em;
+  color: #48bb78;
   padding: 4px 10px;
-  border: 1px solid var(--success);
+  border: 1px solid #48bb78;
   border-radius: 3px;
   background: rgba(72, 187, 120, 0.1);
 }
 .day-off-status-badge::before { content: '✓ '; }
 
-/* ── META TAG VARIANTS ───────────────────────────────────────────────────── */
-.recovery-tag { border-color: rgba(72,187,120,0.3); color: var(--success); }
-.late-tag     { border-color: rgba(237,137,54,0.3); color: var(--warning); }
-
 /* ── MOBILE ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  #task-drawer {
-    border-radius: 0;
-    inset: 0;
-  }
+  #task-drawer { border-radius: 0; }
+}
+
+/* ── SKILL TREE ───────────────────────────────────────────────────────────── */
+
+.skill-card-child {
+  border-color: rgba(79, 142, 247, 0.12);
+  background: rgba(13, 17, 28, 0.5);
+}
+
+.skill-card-child:hover { border-color: rgba(79, 142, 247, 0.25); }
+
+.skill-tree-connector {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.skill-card-bar-fill-child {
+  background: rgba(79, 142, 247, 0.6);  /* dimmer than parent's solid accent */
+}
+
+.skill-tree-separator {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 6px 0;
+}
+
+/* SPEC badge for child skills — slightly different color than AUTO */
+.skill-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(79, 142, 247, 0.2);
+  color: var(--accent);
+}
+
+.skill-card-child .skill-badge {
+  background: rgba(72, 187, 120, 0.08);
+  border-color: rgba(72, 187, 120, 0.2);
+  color: var(--success);
 }

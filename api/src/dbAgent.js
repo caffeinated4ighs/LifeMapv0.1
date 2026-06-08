@@ -301,7 +301,7 @@ export async function getCalendar(month) {
 }
 
 export async function getSkills() {
-  const { data, error } = await supabase.from('skill').select('id, name, description, category, is_dynamic, current_level, current_xp, xp_to_next, current_streak').order('current_level', { ascending: false })
+  const { data, error } = await supabase.from('skill').select('id, name, description, category, is_dynamic, parent_skill_id, current_level, current_xp, xp_to_next, current_streak').order('current_level', { ascending: false })
   if (error) throw error
   return data || []
 }

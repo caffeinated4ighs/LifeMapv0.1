@@ -1,131 +1,59 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// skills.js — skill tree modal
-// Phase 9.3: renders parent skills with indented children beneath them.
-// Parents are sorted by level desc. Children grouped under their parent.
-// Orphan skills (no parent) are top-level.
-// ═══════════════════════════════════════════════════════════════════════════
+// skills.js — Phase 9.3: skill tree with parent/child hierarchy
 
-// ── Render a skill card ───────────────────────────────────────────────────
-function renderSkillCard(skill, isChild = false) {
-  const xpPct    = xpPercent(skill.current_xp, skill.xp_to_next)
-  const sc       = streakClass(skill.current_streak)
-  const streakTxt = `Streak: ${formatStreak(skill.current_streak)}`
+function renderSkillCard(skill, depth = 0) {
+  const xpPct   = xpPercent(skill.current_xp, skill.xp_to_next)
+  const sc      = streakClass(skill.current_streak)
+  const isChild = depth > 0
 
   const card = el('div', { class: `skill-card${isChild ? ' skill-card-child' : ''}` })
   card.dataset.skillId = skill.id
+  if (depth > 0) card.style.marginLeft = `${Math.min(depth, 3) * 16}px`
 
-  // Header
   const header = el('div', { class: 'skill-card-header' })
 
-  // Child indent indicator
   if (isChild) {
-    header.appendChild(el('span', { class: 'skill-child-arrow', text: '↳' }))
+    header.appendChild(el('span', { class: 'skill-tree-connector', text: '└─' }))
   }
 
-  const nameEl = el('span', { class: 'skill-card-name', text: skill.name })
-  header.appendChild(nameEl)
+  header.appendChild(el('span', { class: 'skill-card-name', text: skill.name }))
 
   if (skill.is_dynamic) {
-    header.appendChild(el('span', { class: 'skill-badge', text: 'AUTO' }))
+    header.appendChild(el('span', { class: 'skill-badge', text: isChild ? 'SPEC' : 'AUTO' }))
   }
 
   header.appendChild(el('span', { class: 'skill-level-label', text: `Lv.${skill.current_level}` }))
 
-  // Rename button (dynamic skills only)
   if (skill.is_dynamic) {
     const renameBtn = el('button', { class: 'skill-rename-btn', text: '✎' })
     renameBtn.title = 'Rename skill'
     renameBtn.addEventListener('click', () => startRename(card, skill))
     header.appendChild(renameBtn)
   }
-
   card.appendChild(header)
 
-  // XP bar
   const bar  = el('div', { class: 'skill-card-bar' })
-  const fill = el('div', { class: 'skill-card-bar-fill' })
+  const fill = el('div', { class: `skill-card-bar-fill${isChild ? ' skill-card-bar-fill-child' : ''}` })
   fill.style.width = `${xpPct}%`
   bar.appendChild(fill)
   card.appendChild(bar)
 
-  // Footer
   const footer = el('div', { class: 'skill-card-footer' })
   footer.appendChild(el('span', { class: 'skill-xp-label', text: `${Math.round(skill.current_xp)} / ${skill.xp_to_next} XP` }))
-  footer.appendChild(el('span', { class: `skill-streak ${sc}`, text: streakTxt }))
+  footer.appendChild(el('span', { class: `skill-streak ${sc}`, text: `Streak: ${formatStreak(skill.current_streak)}` }))
   card.appendChild(footer)
 
   return card
 }
 
-// ── Build the skill tree and render ──────────────────────────────────────
-function renderSkillTree(skills) {
-  const list = document.getElementById('skills-list')
-  list.innerHTML = ''
-
-  if (!skills.length) {
-    list.appendChild(el('div', { class: 'task-empty', text: 'No skills yet. Complete tasks to unlock them.' }))
-    return
-  }
-
-  // Separate into parents (no parent_skill_id) and children
-  const topLevel = skills.filter(s => !s.parent_skill_id)
-  const children = skills.filter(s =>  s.parent_skill_id)
-
-  // Build a map: parent_id → [child, child, ...]
-  const childMap = new Map()
-  for (const child of children) {
-    const pid = child.parent_skill_id
-    if (!childMap.has(pid)) childMap.set(pid, [])
-    childMap.get(pid).push(child)
-  }
-
-  // Sort top-level by level desc
-  topLevel.sort((a, b) => b.current_level - a.current_level)
-
-  for (const parent of topLevel) {
-    // Parent skill group wrapper
-    const group = el('div', { class: 'skill-group' })
-
-    // Parent card
-    group.appendChild(renderSkillCard(parent, false))
-
-    // Children sorted by level desc
-    const kids = (childMap.get(parent.id) || [])
-      .sort((a, b) => b.current_level - a.current_level)
-
-    for (const child of kids) {
-      group.appendChild(renderSkillCard(child, true))
-
-      // Grandchildren (depth 2)
-      const grandkids = (childMap.get(child.id) || [])
-        .sort((a, b) => b.current_level - a.current_level)
-      for (const gc of grandkids) {
-        group.appendChild(renderSkillCard(gc, true))
-      }
-    }
-
-    list.appendChild(group)
-  }
-
-  // Orphaned children (parent_skill_id set but parent not in list — edge case)
-  const renderedIds = new Set(skills.map(s => s.id))
-  const orphanedChildren = children.filter(c => !renderedIds.has(c.parent_skill_id))
-  for (const oc of orphanedChildren) {
-    list.appendChild(renderSkillCard(oc, false))
-  }
-}
-
-// ── Inline rename ────────────────────────────────────────────────────────
 function startRename(card, skill) {
-  const header  = card.querySelector('.skill-card-header')
-  const nameEl  = header.querySelector('.skill-card-name')
-  const current = nameEl.textContent
+  const header      = card.querySelector('.skill-card-header')
+  const nameEl      = header.querySelector('.skill-card-name')
+  const currentName = nameEl.textContent
 
   const input = el('input', { class: 'skill-rename-input', type: 'text' })
-  input.value = current
+  input.value = currentName
   nameEl.replaceWith(input)
-  input.focus()
-  input.select()
+  input.focus(); input.select()
 
   const confirmBtn = el('button', { class: 'skill-rename-confirm', text: '✓' })
   header.appendChild(confirmBtn)
@@ -135,9 +63,8 @@ function startRename(card, skill) {
 
   const doRename = async () => {
     const newName = input.value.trim()
-    if (!newName || newName === current) { cancelRename(); return }
-    confirmBtn.disabled = true
-    confirmBtn.textContent = '...'
+    if (!newName || newName === currentName) { cancelRename(); return }
+    confirmBtn.disabled = true; confirmBtn.textContent = '...'
     try {
       await apiPostChat(`rename skill ${skill.id} to "${newName}"`)
       await loadSkills()
@@ -160,14 +87,54 @@ function startRename(card, skill) {
   })
 }
 
-// ── Load ─────────────────────────────────────────────────────────────────
+function buildSkillTree(skills) {
+  const roots    = skills.filter(s => !s.parent_skill_id)
+  const children = skills.filter(s =>  s.parent_skill_id)
+
+  const childMap = new Map()
+  for (const child of children) {
+    const pid = child.parent_skill_id
+    if (!childMap.has(pid)) childMap.set(pid, [])
+    childMap.get(pid).push(child)
+  }
+
+  const fragments = []
+
+  function renderBranch(skill, depth) {
+    fragments.push({ skill, depth })
+    const kids = (childMap.get(skill.id) || []).sort((a, b) => b.current_level - a.current_level)
+    for (const kid of kids) renderBranch(kid, depth + 1)
+  }
+
+  roots.sort((a, b) => b.current_level - a.current_level)
+  for (const root of roots) renderBranch(root, 0)
+
+  return fragments
+}
+
 async function loadSkills() {
   const list = document.getElementById('skills-list')
   list.innerHTML = '<div class="task-empty">Loading...</div>'
 
   try {
     const skills = await apiGetSkills()
-    renderSkillTree(skills)
+    list.innerHTML = ''
+
+    if (!skills.length) {
+      list.appendChild(el('div', { class: 'task-empty', text: 'No skills yet. Complete tasks to unlock them.' }))
+      return
+    }
+
+    const tree = buildSkillTree(skills)
+    let lastRootId = null
+
+    for (const { skill, depth } of tree) {
+      if (depth === 0 && lastRootId !== null) {
+        list.appendChild(el('div', { class: 'skill-tree-separator' }))
+      }
+      if (depth === 0) lastRootId = skill.id
+      list.appendChild(renderSkillCard(skill, depth))
+    }
   } catch (err) {
     list.innerHTML = ''
     list.appendChild(el('div', { class: 'task-empty', text: 'Failed to load skills.' }))
